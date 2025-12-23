@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Analysis Platform | منصة التحليل المالي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+:root {
+    --primary-900: #0c1929;
+    --primary-800: #1a365d;
+    --primary-700: #234681;
+    --primary-600: #2c5282;
+    --primary-500: #3182ce;
+    --primary-400: #4299e1;
+    --primary-300: #63b3ed;
+    --accent-gold: #d69e2e;
+    --accent-gold-light: #ecc94b;
+    --bg-primary: #f8fafc;
+    --bg-card: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --text-light: #f1f5f9;
+    --border-color: #e2e8f0;
+    --border-light: #f1f5f9;
+    --positive: #10b981;
+    --positive-bg: rgba(16, 185, 129, 0.1);
+    --negative: #ef4444;
+    --negative-bg: rgba(239, 68, 68, 0.1);
+    --warning: #f59e0b;
+    --warning-bg: rgba(245, 158, 11, 0.1);
+    --info: #3b82f6;
+    --info-bg: rgba(59, 130, 246, 0.1);
+    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-arabic: 'Cairo', 'Inter', sans-serif;
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+}
+[dir="rtl"] { --font-primary: var(--font-arabic); }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+    font-family: var(--font-primary);
+    background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+.main-header {
+    background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-800) 50%, var(--primary-700) 100%);
+    color: var(--text-light);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: var(--shadow-xl);
+}
+.header-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+.logo-section { display: flex; align-items: center; gap: 1rem; }
+.logo-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-light) 100%);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    box-shadow: var(--shadow-lg);
+}
+.logo-text h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: #fff;
+}
+.logo-text span { font-size: 0.875rem; color: var(--primary-300); }
+.header-controls { display: flex; align-items: center; gap: 1.5rem; }
+.control-group { display: flex; align-items: center; gap: 0.5rem; }
+.control-group label { font-size: 0.875rem; color: var(--primary-300); font-weight: 500; }
+.control-group select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+.control-group select option { background: var(--primary-800); color: #ffffff; }
+.main-container { max-width: 1600px; margin: 0 auto; padding: 2rem; }
+.upload-section { margin-bottom: 2rem; }
+.upload-box {
+    background: rgba(255,255,255,0.95);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.upload-box:hover { border-color: var(--primary-500); transform: translateY(-2px); box-shadow: var(--shadow-xl); }
+.upload-box.drag-over { border-color: var(--accent-gold); background: rgba(214, 158, 46, 0.05); }
+.upload-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+}
+.upload-box h2 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
+.upload-box p { color: var(--text-secondary); margin-bottom: 1.5rem; }
+.file-input-wrapper { position: relative; display: inline-block; }
+.file-input-wrapper input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.btn-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+    color: #ffffff;
+    padding: 0.875rem 2rem;
+    border-radius: var(--radius-full);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+.upload-hint { display: block; font-size: 0.875rem; color: var(--text-muted); margin-top: 1rem; }
+.processing-indicator { display: none; align-items: center; justify-content: center; gap: 0.75rem; padding: 1rem; color: var(--primary-600); }
+.processing-indicator.active { display: flex; }
+.spinner { width: 24px; height: 24px; border: 3px solid var(--border-color); border-top-color: var(--primary-500); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.company-info {
+    display: none;
+    background: linear-gradient(135deg, var(--primary-800) 0%, var(--primary-700) 100%);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    color: #ffffff;
+}
+.company-info.visible { display: block; }
+.company-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.company-logo {
+    width: 48px; height: 48px;
+    background: var(--accent-gold);
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; font-weight: 700;
+}
+.company-name { font-size: 1.75rem; font-weight: 700; margin: 0; }
+.company-meta { display: flex; flex-wrap: wrap; gap: 2rem; }
+.meta-item { display: flex; flex-direction: column; gap: 0.25rem; }
+.meta-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-300); }
+.meta-value { font-size: 1rem; font-weight: 600; }
+.tab-navigation {
+    display: none;
+    background: rgba(255,255,255,0.95);
+    border-radius: var(--radius-xl);
+    padding: 0.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+    overflow-x: auto;
+}
+.tab-navigation.visible { display: flex; }
+.tab-btn {
+    flex: 1;
+    min-width: max-content;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+.tab-btn:hover { background: rgba(49, 130, 206, 0.1); color: var(--primary-600); }
+.tab-btn.active { background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%); color: #ffffff; }
+.tab-icon { font-size: 1.125rem; }
+.tab-panel { display: none; animation: fadeIn 0.4s ease; }
+.tab-panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.card { background: var(--bg-card); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); overflow: hidden; margin-bottom: 1.5rem; }
+.card-header { background: var(--bg-primary); padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+.card-title { font-size: 1.125rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+.card-body { padding: 1.5rem; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.kpi-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+.kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary-500); }
+.kpi-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-xl); }
+.kpi-card.positive::before { background: var(--positive); }
+.kpi-card.negative::before { background: var(--negative); }
+.kpi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+.kpi-label { font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+.kpi-icon { width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; background: var(--info-bg); }
+.kpi-value { font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
+.kpi-change { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); }
+.kpi-change.positive { background: var(--positive-bg); color: var(--positive); }
+.kpi-change.negative { background: var(--negative-bg); color: var(--negative); }
+.statement-section { margin-bottom: 2rem; }
+.section-title {
+    font-size: 1.25rem; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 1rem; padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-500);
+    display: flex; align-items: center; gap: 0.75rem;
+}
+.section-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    color: #ffffff; font-size: 1rem;
+}
+.statement-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+.statement-item {
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-light);
+}
+.statement-item:hover { background: #ffffff; box-shadow: var(--shadow-md); }
+.item-label { color: var(--text-secondary); font-weight: 500; }
+.item-value { font-weight: 700; color: var(--text-primary); }
+.chart-container { position: relative; height: 350px; padding: 1rem; }
+.chart-wrapper { background: var(--bg-card); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-md); margin-bottom: 2rem; }
+.chart-title { font-size: 1.125rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.data-table thead { background: linear-gradient(135deg, var(--primary-800) 0%, var(--primary-700) 100%); color: #ffffff; }
+.data-table th { padding: 1rem 1.25rem; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+.data-table tbody tr { border-bottom: 1px solid var(--border-light); }
+.data-table tbody tr:hover { background: var(--bg-primary); }
+.data-table td { padding: 1rem 1.25rem; }
+.data-table .positive { color: var(--positive); }
+.data-table .negative { color: var(--negative); }
+.ratio-categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+.ratio-category { background: var(--bg-card); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-md); }
+.ratio-category-header { padding: 1rem 1.5rem; font-weight: 700; color: #ffffff; text-transform: uppercase; font-size: 0.875rem; }
+.ratio-category.liquidity .ratio-category-header { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+.ratio-category.profitability .ratio-category-header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+.ratio-category.leverage .ratio-category-header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+.ratio-list { padding: 1rem; }
+.ratio-item { display: flex; justify-content: space-between; align-items: center; padding: 0.875rem 1rem; background: var(--bg-primary); border-radius: var(--radius-md); margin-bottom: 0.5rem; }
+.ratio-item:last-child { margin-bottom: 0; }
+.ratio-name { font-weight: 500; color: var(--text-secondary); }
+.ratio-value { font-weight: 700; font-size: 1.125rem; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); }
+.ratio-value.good { background: var(--positive-bg); color: var(--positive); }
+.ratio-value.warning { background: var(--warning-bg); color: var(--warning); }
+.ratio-value.bad { background: var(--negative-bg); color: var(--negative); }
+.valuation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.valuation-card { background: var(--bg-card); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-md); }
+.valuation-card-header { background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%); color: #ffffff; padding: 1.25rem 1.5rem; }
+.valuation-card-header h4 { font-size: 1rem; font-weight: 700; margin: 0; text-transform: uppercase; }
+.valuation-card-body { padding: 1.5rem; }
+.valuation-main-value { font-size: 2.5rem; font-weight: 700; color: var(--primary-700); margin-bottom: 1rem; }
+.valuation-details { list-style: none; }
+.valuation-details li { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-light); }
+.valuation-details li:last-child { border-bottom: none; }
+.detail-label { color: var(--text-secondary); }
+.detail-value { font-weight: 600; color: var(--text-primary); }
+.decision-section { background: var(--bg-card); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-lg); margin-bottom: 2rem; }
+.decision-header { background: linear-gradient(135deg, var(--primary-800) 0%, var(--primary-700) 100%); color: #ffffff; padding: 2rem; text-align: center; }
+.decision-header h3 { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem 0; }
+.decision-header p { color: var(--primary-300); }
+.decision-body { padding: 2rem; }
+.decision-block { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
+.decision-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.decision-block h4 { font-size: 1.125rem; font-weight: 700; color: var(--primary-700); margin-bottom: 1rem; }
+.decision-block p { color: var(--text-secondary); line-height: 1.8; white-space: pre-line; }
+.final-verdict { background: linear-gradient(135deg, var(--positive) 0%, #059669 100%); color: #ffffff; padding: 2rem; border-radius: var(--radius-xl); text-align: center; }
+.verdict-label { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.9; margin-bottom: 0.5rem; }
+.verdict-text { font-size: 1.5rem; font-weight: 700; }
+.mapping-report { background: var(--bg-card); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-md); margin-top: 2rem; display: none; }
+.mapping-report.visible { display: block; }
+.mapping-header { background: var(--bg-primary); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.mapping-title { font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+.mapping-toggle { transition: transform 0.3s; }
+.mapping-toggle.open { transform: rotate(180deg); }
+.mapping-content { display: none; padding: 1.5rem; }
+.mapping-content.visible { display: block; }
+.mapping-stats { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.stat-box { padding: 1rem 1.5rem; border-radius: var(--radius-md); text-align: center; min-width: 120px; }
+.stat-box.found { background: var(--positive-bg); }
+.stat-box.missing { background: var(--negative-bg); }
+.stat-number { font-size: 2rem; font-weight: 700; }
+.stat-box.found .stat-number { color: var(--positive); }
+.stat-box.missing .stat-number { color: var(--negative); }
+.stat-label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); margin-top: 0.25rem; }
+.mapping-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+.mapping-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; background: var(--bg-primary); border-radius: var(--radius-md); font-size: 0.875rem; }
+.mapping-item.found { border-left: 3px solid var(--positive); }
+.mapping-item.missing { border-left: 3px solid var(--negative); opacity: 0.6; }
+.main-footer { background: var(--primary-900); color: var(--text-light); padding: 2rem; text-align: center; margin-top: auto; }
+.footer-brand { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+.footer-credit { font-size: 0.875rem; color: var(--primary-300); }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+@media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+    .header-content { flex-direction: column; gap: 1rem; }
+    .tab-btn .tab-label { display: none; }
+    .kpi-value { font-size: 1.5rem; }
+}
+[dir="rtl"] .kpi-card::before { left: auto; right: 0; }
+[dir="rtl"] .mapping-item { border-left: none; border-right: 3px solid var(--positive); }
+[dir="rtl"] .mapping-item.missing { border-right-color: var(--negative); }
+[dir="rtl"] .data-table th, [dir="rtl"] .data-table td { text-align: right; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">📊</div>
+                <div class="logo-text">
+                    <h1 id="platformTitle">Financial Analysis Platform</h1>
+                    <span id="platformSubtitle">Executive Decision Support System</span>
+                </div>
+            </div>
+            <div class="header-controls">
+                <div class="control-group">
+                    <label id="langLabel">Language:</label>
+                    <select id="languageToggle">
+                        <option value="en">English</option>
+                        <option value="ar">العربية</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label id="currLabel">Currency:</label>
+                    <select id="currencyToggle">
+                        <option value="USD">USD ($)</option>
+                        <option value="SAR">SAR (﷼)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <section id="uploadSection" class="upload-section">
+            <div class="upload-box" id="uploadBox">
+                <div class="upload-icon">📁</div>
+                <h2 id="uploadTitle">Upload Financial Data</h2>
+                <p id="uploadDesc">Drop your Excel file here or click to browse</p>
+                <div class="file-input-wrapper">
+                    <button class="btn-upload">
+                        <span>📄</span>
+                        <span id="selectFileBtn">Select Excel File</span>
+                    </button>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls">
+                </div>
+                <span class="upload-hint" id="uploadHint">Supported: .xlsx, .xls files with financial statement data</span>
+                <div class="processing-indicator" id="processingIndicator">
+                    <div class="spinner"></div>
+                    <span id="processingText">Processing financial data...</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="companyInfo" class="company-info">
+            <div class="company-header">
+                <div class="company-logo" id="companyLogo">A</div>
+                <h2 class="company-name" id="companyName">Company Name</h2>
+            </div>
+            <div class="company-meta">
+                <div class="meta-item">
+                    <span class="meta-label" id="industryLabel">Industry</span>
+                    <span class="meta-value" id="industryValue">-</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label" id="periodLabel">Period</span>
+                    <span class="meta-value" id="periodValue">-</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label" id="currencyLabel">Currency</span>
+                    <span class="meta-value" id="currencyValue">-</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label" id="objectiveLabel">Objective</span>
+                    <span class="meta-value" id="objectiveValue">-</span>
+                </div>
+            </div>
+        </section>
+
+        <nav id="tabNavigation" class="tab-navigation">
+            <button class="tab-btn active" data-tab="overview">
+                <span class="tab-icon">📋</span>
+                <span class="tab-label" id="tabOverview">Overview</span>
+            </button>
+            <button class="tab-btn" data-tab="horizontal">
+                <span class="tab-icon">📈</span>
+                <span class="tab-label" id="tabHorizontal">Horizontal Analysis</span>
+            </button>
+            <button class="tab-btn" data-tab="vertical">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label" id="tabVertical">Vertical Analysis</span>
+            </button>
+            <button class="tab-btn" data-tab="ratios">
+                <span class="tab-icon">⚖️</span>
+                <span class="tab-label" id="tabRatios">Ratio Analysis</span>
+            </button>
+            <button class="tab-btn" data-tab="valuation">
+                <span class="tab-icon">💰</span>
+                <span class="tab-label" id="tabValuation">Valuation & CAPM</span>
+            </button>
+            <button class="tab-btn" data-tab="decision">
+                <span class="tab-icon">✅</span>
+                <span class="tab-label" id="tabDecision">Investment Decision</span>
+            </button>
+        </nav>
+
+        <div id="tabContent">
+            <div id="overviewPanel" class="tab-panel active">
+                <div class="kpi-grid" id="kpiGrid"></div>
+                <div class="statement-section">
+                    <h3 class="section-title"><span class="section-icon">📄</span><span id="incomeTitle">Income Statement</span></h3>
+                    <div class="statement-grid" id="incomeGrid"></div>
+                </div>
+                <div class="statement-section">
+                    <h3 class="section-title"><span class="section-icon">🏦</span><span id="balanceTitle">Balance Sheet</span></h3>
+                    <div class="statement-grid" id="balanceGrid"></div>
+                </div>
+                <div class="statement-section">
+                    <h3 class="section-title"><span class="section-icon">💵</span><span id="cashflowTitle">Cash Flow</span></h3>
+                    <div class="statement-grid" id="cashflowGrid"></div>
+                </div>
+                <div class="statement-section">
+                    <h3 class="section-title"><span class="section-icon">⚙️</span><span id="assumptionsTitle">Key Assumptions</span></h3>
+                    <div class="statement-grid" id="assumptionsGrid"></div>
+                </div>
+            </div>
+
+            <div id="horizontalPanel" class="tab-panel">
+                <div class="chart-wrapper">
+                    <h3 class="chart-title"><span>📈</span><span id="horizontalChartTitle">Year-over-Year Comparison</span></h3>
+                    <div class="chart-container"><canvas id="horizontalChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><span class="card-title"><span>📊</span><span id="horizontalTableTitle">Horizontal Analysis Data</span></span></div>
+                    <div class="card-body">
+                        <table class="data-table" id="horizontalTable">
+                            <thead><tr id="horizontalTableHead"></tr></thead>
+                            <tbody id="horizontalTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="verticalPanel" class="tab-panel">
+                <div class="grid-2">
+                    <div class="chart-wrapper">
+                        <h3 class="chart-title"><span>📊</span><span id="verticalChartTitle">Cost Structure (% of Revenue)</span></h3>
+                        <div class="chart-container"><canvas id="verticalChart"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><span class="card-title"><span>📋</span><span id="verticalTableTitle">Vertical Analysis Breakdown</span></span></div>
+                        <div class="card-body">
+                            <table class="data-table" id="verticalTable">
+                                <thead><tr><th id="vItemHeader">Item</th><th id="vPercentHeader">% of Revenue</th><th id="vInterpretHeader">Interpretation</th></tr></thead>
+                                <tbody id="verticalTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ratiosPanel" class="tab-panel">
+                <div class="ratio-categories" id="ratioCategories"></div>
+                <div class="chart-wrapper" style="margin-top: 2rem;">
+                    <h3 class="chart-title"><span>📊</span><span id="ratioChartTitle">Financial Ratios Overview</span></h3>
+                    <div class="chart-container"><canvas id="ratioChart"></canvas></div>
+                </div>
+            </div>
+
+            <div id="valuationPanel" class="tab-panel">
+                <div class="valuation-grid" id="valuationGrid"></div>
+                <div class="card">
+                    <div class="card-header"><span class="card-title"><span>📝</span><span id="capmNotesTitle">CAPM & WACC Notes</span></span></div>
+                    <div class="card-body" id="capmNotes"></div>
+                </div>
+            </div>
+
+            <div id="decisionPanel" class="tab-panel">
+                <div class="decision-section">
+                    <div class="decision-header">
+                        <h3 id="decisionTitle">Investment Decision Report</h3>
+                        <p id="decisionSubtitle">Comprehensive Analysis Summary</p>
+                    </div>
+                    <div class="decision-body" id="decisionBody"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mapping-report" id="mappingReport">
+            <div class="mapping-header" id="mappingHeader">
+                <span class="mapping-title"><span>📋</span><span id="mappingTitle">Data Mapping Report</span></span>
+                <span class="mapping-toggle" id="mappingToggle">▼</span>
+            </div>
+            <div class="mapping-content" id="mappingContent">
+                <div class="mapping-stats" id="mappingStats"></div>
+                <div class="mapping-grid" id="mappingGrid"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-brand" id="footerBrand">Financial Analysis Platform</div>
+            <div class="footer-credit" id="footerCredit">Developed for Advanced Financial Decision Support</div>
+        </div>
+    </footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// TRANSLATIONS
+// ═══════════════════════════════════════════════════════════════
+const translations = {
+    en: {
+        platformTitle: 'Financial Analysis Platform',
+        platformSubtitle: 'Executive Decision Support System',
+        langLabel: 'Language:',
+        currLabel: 'Currency:',
+        uploadTitle: 'Upload Financial Data',
+        uploadDesc: 'Drop your Excel file here or click to browse',
+        selectFileBtn: 'Select Excel File',
+        uploadHint: 'Supported: .xlsx, .xls files with financial statement data',
+        processingText: 'Processing financial data...',
+        industryLabel: 'Industry',
+        periodLabel: 'Period',
+        currencyLabel: 'Currency',
+        objectiveLabel: 'Objective',
+        tabOverview: 'Overview',
+        tabHorizontal: 'Horizontal Analysis',
+        tabVertical: 'Vertical Analysis',
+        tabRatios: 'Ratio Analysis',
+        tabValuation: 'Valuation & CAPM',
+        tabDecision: 'Investment Decision',
+        incomeTitle: 'Income Statement',
+        balanceTitle: 'Balance Sheet',
+        cashflowTitle: 'Cash Flow',
+        assumptionsTitle: 'Key Assumptions',
+        horizontalChartTitle: 'Year-over-Year Comparison',
+        horizontalTableTitle: 'Horizontal Analysis Data',
+        verticalChartTitle: 'Cost Structure (% of Revenue)',
+        verticalTableTitle: 'Vertical Analysis Breakdown',
+        vItemHeader: 'Item',
+        vPercentHeader: '% of Revenue',
+        vInterpretHeader: 'Interpretation',
+        ratioChartTitle: 'Financial Ratios Overview',
+        capmNotesTitle: 'CAPM & WACC Notes',
+        decisionTitle: 'Investment Decision Report',
+        decisionSubtitle: 'Comprehensive Analysis Summary',
+        mappingTitle: 'Data Mapping Report',
+        footerBrand: 'Financial Analysis Platform',
+        footerCredit: 'Developed for Advanced Financial Decision Support',
+        revenue: 'Revenue', cogs: 'COGS', operatingExpenses: 'Operating Expenses',
+        ebit: 'EBIT', netIncome: 'Net Income', currentAssets: 'Current Assets',
+        totalAssets: 'Total Assets', currentLiabilities: 'Current Liabilities',
+        totalLiabilities: 'Total Liabilities', equity: 'Equity', cash: 'Cash',
+        totalDebt: 'Total Debt', operatingCashFlow: 'Operating Cash Flow',
+        capex: 'CAPEX', freeCashFlow: 'Free Cash Flow', taxRate: 'Tax Rate',
+        costOfDebt: 'Cost of Debt', costOfEquity: 'Cost of Equity', wacc: 'WACC',
+        riskFreeRate: 'Risk-Free Rate', marketRiskPremium: 'Market Risk Premium',
+        beta: 'Beta', npv: 'NPV', irr: 'IRR',
+        currentRatio: 'Current Ratio', quickRatio: 'Quick Ratio',
+        netMargin: 'Net Margin', roa: 'ROA', roe: 'ROE', debtToEquity: 'Debt/Equity',
+        liquidity: 'Liquidity Ratios', profitability: 'Profitability Ratios',
+        leverage: 'Leverage Ratios', found: 'Found', missing: 'Missing',
+        good: 'Good', warning: 'Warning', bad: 'Poor',
+        executiveSummary: 'Executive Summary', keyFindings: 'Key Financial Findings',
+        investmentEvaluation: 'Investment Evaluation', finalDecision: 'Final Investment Decision'
+    },
+    ar: {
+        platformTitle: 'منصة التحليل المالي',
+        platformSubtitle: 'نظام دعم القرار التنفيذي',
+        langLabel: 'اللغة:',
+        currLabel: 'العملة:',
+        uploadTitle: 'رفع البيانات المالية',
+        uploadDesc: 'اسحب ملف Excel هنا أو انقر للتصفح',
+        selectFileBtn: 'اختر ملف Excel',
+        uploadHint: 'مدعوم: ملفات .xlsx, .xls تحتوي على بيانات مالية',
+        processingText: 'جاري معالجة البيانات المالية...',
+        industryLabel: 'القطاع',
+        periodLabel: 'الفترة',
+        currencyLabel: 'العملة',
+        objectiveLabel: 'الهدف',
+        tabOverview: 'نظرة عامة',
+        tabHorizontal: 'التحليل الأفقي',
+        tabVertical: 'التحليل الرأسي',
+        tabRatios: 'تحليل النسب',
+        tabValuation: 'التقييم و CAPM',
+        tabDecision: 'قرار الاستثمار',
+        incomeTitle: 'قائمة الدخل',
+        balanceTitle: 'الميزانية العمومية',
+        cashflowTitle: 'التدفقات النقدية',
+        assumptionsTitle: 'الافتراضات الرئيسية',
+        horizontalChartTitle: 'المقارنة السنوية',
+        horizontalTableTitle: 'بيانات التحليل الأفقي',
+        verticalChartTitle: 'هيكل التكاليف (% من الإيرادات)',
+        verticalTableTitle: 'تفصيل التحليل الرأسي',
+        vItemHeader: 'البند',
+        vPercentHeader: '% من الإيرادات',
+        vInterpretHeader: 'التفسير',
+        ratioChartTitle: 'نظرة عامة على النسب المالية',
+        capmNotesTitle: 'ملاحظات CAPM و WACC',
+        decisionTitle: 'تقرير قرار الاستثمار',
+        decisionSubtitle: 'ملخص التحليل الشامل',
+        mappingTitle: 'تقرير ربط البيانات',
+        footerBrand: 'منصة التحليل المالي',
+        footerCredit: 'مطور لدعم القرارات المالية المتقدمة',
+        revenue: 'الإيرادات', cogs: 'تكلفة المبيعات', operatingExpenses: 'المصروفات التشغيلية',
+        ebit: 'الربح التشغيلي', netIncome: 'صافي الدخل', currentAssets: 'الأصول المتداولة',
+        totalAssets: 'إجمالي الأصول', currentLiabilities: 'الالتزامات المتداولة',
+        totalLiabilities: 'إجمالي الالتزامات', equity: 'حقوق الملكية', cash: 'النقدية',
+        totalDebt: 'إجمالي الديون', operatingCashFlow: 'التدفق النقدي التشغيلي',
+        capex: 'النفقات الرأسمالية', freeCashFlow: 'التدفق النقدي الحر', taxRate: 'معدل الضريبة',
+        costOfDebt: 'تكلفة الدين', costOfEquity: 'تكلفة حقوق الملكية', wacc: 'المتوسط المرجح لتكلفة رأس المال',
+        riskFreeRate: 'معدل الخالي من المخاطر', marketRiskPremium: 'علاوة مخاطر السوق',
+        beta: 'بيتا', npv: 'صافي القيمة الحالية', irr: 'معدل العائد الداخلي',
+        currentRatio: 'نسبة التداول', quickRatio: 'نسبة السيولة السريعة',
+        netMargin: 'هامش الربح الصافي', roa: 'العائد على الأصول', roe: 'العائد على حقوق الملكية',
+        debtToEquity: 'الدين إلى حقوق الملكية',
+        liquidity: 'نسب السيولة', profitability: 'نسب الربحية', leverage: 'نسب الرفع المالي',
+        found: 'موجود', missing: 'مفقود', good: 'جيد', warning: 'تحذير', bad: 'ضعيف',
+        executiveSummary: 'الملخص التنفيذي', keyFindings: 'النتائج المالية الرئيسية',
+        investmentEvaluation: 'تقييم الاستثمار', finalDecision: 'قرار الاستثمار النهائي'
+    }
+};
+
+const currencySymbols = { USD: '$', SAR: '﷼', EUR: '€', GBP: '£' };
+const exchangeRates = { USD: 1, SAR: 3.75, EUR: 0.92, GBP: 0.79 };
+
+// ═══════════════════════════════════════════════════════════════
+// GLOBAL STATE
+// ═══════════════════════════════════════════════════════════════
+let currentLanguage = 'en';
+let currentCurrency = 'USD';
+let currentData = null;
+let charts = {};
+
+// ═══════════════════════════════════════════════════════════════
+// INITIALIZATION
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
+
+function initializeApp() {
+    // File upload handlers
+    const uploadBox = document.getElementById('uploadBox');
+    const fileInput = document.getElementById('fileInput');
+    
+    uploadBox.addEventListener('dragover', (e) => { e.preventDefault(); uploadBox.classList.add('drag-over'); });
+    uploadBox.addEventListener('dragleave', () => { uploadBox.classList.remove('drag-over'); });
+    uploadBox.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadBox.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) processFile(e.dataTransfer.files[0]);
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) processFile(e.target.files[0]);
+    });
+    
+    // Language toggle
+    document.getElementById('languageToggle').addEventListener('change', (e) => {
+        currentLanguage = e.target.value;
+        document.documentElement.lang = currentLanguage;
+        document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+        applyTranslations();
+        if (currentData) renderDashboard();
+    });
+    
+    // Currency toggle
+    document.getElementById('currencyToggle').addEventListener('change', (e) => {
+        currentCurrency = e.target.value;
+        if (currentData) renderDashboard();
+    });
+    
+    // Tab navigation
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+    
+    // Mapping report toggle
+    document.getElementById('mappingHeader').addEventListener('click', toggleMappingReport);
+    
+    applyTranslations();
+}
+
+function applyTranslations() {
+    const t = translations[currentLanguage];
+    Object.keys(t).forEach(key => {
+        const el = document.getElementById(key);
+        if (el) el.textContent = t[key];
+    });
+}
+
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById(`${tabName}Panel`).classList.add('active');
+}
+
+function toggleMappingReport() {
+    const content = document.getElementById('mappingContent');
+    const toggle = document.getElementById('mappingToggle');
+    content.classList.toggle('visible');
+    toggle.classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FILE PROCESSING
+// ═══════════════════════════════════════════════════════════════
+async function processFile(file) {
+    if (!file.name.match(/\.xlsx?$/i)) {
+        alert(currentLanguage === 'ar' ? 'يرجى تحميل ملف Excel صالح' : 'Please upload a valid Excel file');
+        return;
+    }
+    
+    document.getElementById('processingIndicator').classList.add('active');
+    
+    try {
+        const data = await readExcelFile(file);
+        currentData = parseFinancialData(data);
+        renderDashboard();
+        
+        document.getElementById('uploadSection').style.display = 'none';
+        document.getElementById('companyInfo').classList.add('visible');
+        document.getElementById('tabNavigation').classList.add('visible');
+        document.getElementById('mappingReport').classList.add('visible');
+    } catch (error) {
+        console.error('Error:', error);
+        alert(currentLanguage === 'ar' ? 'خطأ في معالجة الملف' : 'Error processing file');
+    }
+    
+    document.getElementById('processingIndicator').classList.remove('active');
+}
+
+function readExcelFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const workbook = XLSX.read(e.target.result, { type: 'array' });
+                const sheets = {};
+                workbook.SheetNames.forEach(name => {
+                    sheets[name] = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
+                });
+                resolve(sheets);
+            } catch (err) { reject(err); }
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DATA PARSING
+// ═══════════════════════════════════════════════════════════════
+function parseFinancialData(sheets) {
+    const data = {
+        company: { name: '', industry: '', period: '', currency: '', objective: '' },
+        income: {}, balance: {}, cashflow: {}, assumptions: {},
+        horizontal: [], vertical: [], ratios: {}, valuation: {},
+        decision: { summary: '', findings: '', evaluation: '', final: '' },
+        mapping: { found: [], missing: [] }
+    };
+    
+    const mainSheet = Object.values(sheets)[0] || [];
+    
+    // Parse all rows
+    mainSheet.forEach((row, idx) => {
+        if (!row || row.length === 0) return;
+        
+        const cellA = String(row[0] || '').toLowerCase().trim();
+        const cellB = row[1];
+        const cellC = String(row[2] || '').toLowerCase().trim();
+        const cellD = row[3];
+        
+        // Company info
+        if (cellA.includes('company name')) { data.company.name = cellB || ''; data.mapping.found.push('Company Name'); }
+        if (cellC.includes('industry')) data.company.industry = cellD || '';
+        if (cellA.includes('period') || cellC.includes('period')) data.company.period = row[5] || cellD || '';
+        if (cellC.includes('currency') || cellA.includes('currency')) data.company.currency = row[7] || cellD || '';
+        if (cellA.includes('objective')) data.company.objective = cellB || '';
+        
+        // Income Statement
+        if (cellA === 'revenue' || cellA.includes('إيرادات')) { data.income.revenue = parseNum(cellB); data.mapping.found.push('Revenue'); }
+        if (cellA === 'cogs' || cellA.includes('cost of')) { data.income.cogs = parseNum(cellB); data.mapping.found.push('COGS'); }
+        if (cellA.includes('operating exp')) { data.income.operatingExpenses = parseNum(cellB); data.mapping.found.push('Operating Expenses'); }
+        if (cellA === 'ebit' || cellA.includes('operating income')) { data.income.ebit = parseNum(cellB); data.mapping.found.push('EBIT'); }
+        if (cellA.includes('net income') || cellA === 'net income') { data.income.netIncome = parseNum(cellB); data.mapping.found.push('Net Income'); }
+        
+        // Balance Sheet
+        if (cellC.includes('current assets')) { data.balance.currentAssets = parseNum(cellD); data.mapping.found.push('Current Assets'); }
+        if (cellC.includes('total assets')) { data.balance.totalAssets = parseNum(cellD); data.mapping.found.push('Total Assets'); }
+        if (cellC.includes('current liab')) { data.balance.currentLiabilities = parseNum(cellD); data.mapping.found.push('Current Liabilities'); }
+        if (cellC.includes('total liab')) { data.balance.totalLiabilities = parseNum(cellD); data.mapping.found.push('Total Liabilities'); }
+        if (cellC === 'equity' || cellC.includes('equity')) { data.balance.equity = parseNum(cellD); data.mapping.found.push('Equity'); }
+        if (cellC === 'cash') { data.balance.cash = parseNum(cellD); data.mapping.found.push('Cash'); }
+        if (cellC.includes('total debt')) { data.balance.totalDebt = parseNum(cellD); data.mapping.found.push('Total Debt'); }
+        
+        // Cash Flow
+        if (cellA.includes('operating cash')) { data.cashflow.operatingCashFlow = parseNum(cellB); data.mapping.found.push('Operating Cash Flow'); }
+        if (cellA === 'capex' || cellA.includes('capital exp')) { data.cashflow.capex = parseNum(cellB); data.mapping.found.push('CAPEX'); }
+        if (cellA.includes('free cash')) { data.cashflow.freeCashFlow = parseNum(cellB); data.mapping.found.push('Free Cash Flow'); }
+        
+        // Assumptions
+        if (cellA.includes('tax rate')) { data.assumptions.taxRate = parseNum(cellB); data.mapping.found.push('Tax Rate'); }
+        if (cellA.includes('cost of debt')) { data.assumptions.costOfDebt = parseNum(cellB); data.mapping.found.push('Cost of Debt'); }
+        if (cellA.includes('cost of equity')) { data.assumptions.costOfEquity = parseNum(cellB); data.mapping.found.push('Cost of Equity'); }
+        if (cellA === 'wacc') { data.assumptions.wacc = parseNum(cellB); data.mapping.found.push('WACC'); }
+        
+        // Vertical Analysis
+        if (cellC.includes('cogs') && cellC.includes('sales')) { data.vertical.push({ item: 'COGS', percent: parseNum(cellD) }); }
+        if (cellC.includes('opex') && cellC.includes('sales')) { data.vertical.push({ item: 'OpEx', percent: parseNum(cellD) }); }
+        if (cellC.includes('ebit') && cellC.includes('sales')) { data.vertical.push({ item: 'EBIT', percent: parseNum(cellD) }); }
+        if (cellC.includes('net income') && cellC.includes('sales')) { data.vertical.push({ item: 'Net Income', percent: parseNum(cellD) }); }
+        
+        // Ratios
+        if (cellC.includes('current ratio')) { data.ratios.currentRatio = parseNum(cellD); data.mapping.found.push('Current Ratio'); }
+        if (cellC.includes('quick ratio')) { data.ratios.quickRatio = parseNum(cellD); data.mapping.found.push('Quick Ratio'); }
+        if (cellC.includes('net margin')) { data.ratios.netMargin = parseNum(cellD); data.mapping.found.push('Net Margin'); }
+        if (cellC === 'roa' || cellC.includes('return on assets')) { data.ratios.roa = parseNum(cellD); data.mapping.found.push('ROA'); }
+        if (cellC === 'roe' || cellC.includes('return on equity')) { data.ratios.roe = parseNum(cellD); data.mapping.found.push('ROE'); }
+        if (cellC.includes('debt') && cellC.includes('equity')) { data.ratios.debtToEquity = parseNum(cellD); data.mapping.found.push('Debt/Equity'); }
+        
+        // Capital Budgeting
+        if (cellA === 'npv' || cellA.includes('net present')) { data.valuation.npv = parseNum(cellB); data.mapping.found.push('NPV'); }
+        if (cellA === 'irr') { data.valuation.irr = cellB; data.mapping.found.push('IRR'); }
+        
+        // Horizontal Analysis
+        if (cellA === 'item' && row.includes(2024)) {
+            // Header row - capture years
+        }
+        if ((cellA === 'revenue' || cellA === 'net income' || cellA === 'total assets' || cellA === 'equity') && row[1] && row[2]) {
+            data.horizontal.push({ item: cellA, y2024: parseNum(row[1]), y2023: parseNum(row[2]), change: parseNum(row[3]) });
+        }
+        
+        // CAPM Notes
+        if (cellA.includes('capm') || cellA.includes('risk-free') || cellA.includes('market risk') || cellA.includes('beta')) {
+            data.valuation.capmNotes = (data.valuation.capmNotes || '') + '\n' + row[0];
+        }
+    });
+    
+    // Decision sheet
+    const decisionSheet = Object.values(sheets)[1] || [];
+    decisionSheet.forEach(row => {
+        if (!row || !row[0]) return;
+        const text = String(row[0]);
+        if (text.includes('Executive Summary')) data.decision.summary = text.replace('Executive Summary', '').trim();
+        if (text.includes('Key Financial')) data.decision.findings = text.replace('Key Financial Findings', '').trim();
+        if (text.includes('Investment Evaluation')) data.decision.evaluation = text.replace('Investment Evaluation', '').trim();
+        if (text.includes('Final Investment Decision')) data.decision.final = text.replace('Final Investment Decision', '').trim();
+    });
+    
+    // Calculate derived values
+    if (!data.cashflow.freeCashFlow && data.cashflow.operatingCashFlow && data.cashflow.capex) {
+        data.cashflow.freeCashFlow = data.cashflow.operatingCashFlow - data.cashflow.capex;
+    }
+    
+    // Unique found items
+    data.mapping.found = [...new Set(data.mapping.found)];
+    
+    return data;
+}
+
+function parseNum(val) {
+    if (val === null || val === undefined || val === '' || val === '#NUM!' || val === '#N/A') return null;
+    const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/[^0-9.-]/g, ''));
+    return isNaN(num) ? null : num;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDERING
+// ═══════════════════════════════════════════════════════════════
+function renderDashboard() {
+    const t = translations[currentLanguage];
+    const d = currentData;
+    
+    // Company Info
+    document.getElementById('companyName').textContent = d.company.name || 'Company';
+    document.getElementById('companyLogo').textContent = (d.company.name || 'C')[0].toUpperCase();
+    document.getElementById('industryValue').textContent = d.company.industry || '-';
+    document.getElementById('periodValue').textContent = d.company.period || '-';
+    document.getElementById('currencyValue').textContent = d.company.currency || '-';
+    document.getElementById('objectiveValue').textContent = d.company.objective || '-';
+    
+    renderOverview(t, d);
+    renderHorizontal(t, d);
+    renderVertical(t, d);
+    renderRatios(t, d);
+    renderValuation(t, d);
+    renderDecision(t, d);
+    renderMapping(t, d);
+}
+
+function renderOverview(t, d) {
+    // KPI Cards
+    const kpis = [
+        { key: 'revenue', value: d.income.revenue, icon: '💰', status: 'positive' },
+        { key: 'netIncome', value: d.income.netIncome, icon: '📈', status: 'positive' },
+        { key: 'totalAssets', value: d.balance.totalAssets, icon: '🏦', status: 'neutral' },
+        { key: 'freeCashFlow', value: d.cashflow.freeCashFlow, icon: '💵', status: d.cashflow.freeCashFlow > 0 ? 'positive' : 'negative' }
+    ];
+    
+    document.getElementById('kpiGrid').innerHTML = kpis.map(kpi => `
+        <div class="kpi-card ${kpi.status}">
+            <div class="kpi-header">
+                <span class="kpi-label">${t[kpi.key] || kpi.key}</span>
+                <span class="kpi-icon">${kpi.icon}</span>
+            </div>
+            <div class="kpi-value">${formatCurrency(kpi.value)}</div>
+        </div>
+    `).join('');
+    
+    // Income Statement
+    document.getElementById('incomeGrid').innerHTML = renderStatementItems([
+        { key: 'revenue', value: d.income.revenue },
+        { key: 'cogs', value: d.income.cogs },
+        { key: 'operatingExpenses', value: d.income.operatingExpenses },
+        { key: 'ebit', value: d.income.ebit },
+        { key: 'netIncome', value: d.income.netIncome }
+    ], t);
+    
+    // Balance Sheet
+    document.getElementById('balanceGrid').innerHTML = renderStatementItems([
+        { key: 'currentAssets', value: d.balance.currentAssets },
+        { key: 'totalAssets', value: d.balance.totalAssets },
+        { key: 'currentLiabilities', value: d.balance.currentLiabilities },
+        { key: 'totalLiabilities', value: d.balance.totalLiabilities },
+        { key: 'equity', value: d.balance.equity },
+        { key: 'totalDebt', value: d.balance.totalDebt }
+    ], t);
+    
+    // Cash Flow
+    document.getElementById('cashflowGrid').innerHTML = renderStatementItems([
+        { key: 'operatingCashFlow', value: d.cashflow.operatingCashFlow },
+        { key: 'capex', value: d.cashflow.capex },
+        { key: 'freeCashFlow', value: d.cashflow.freeCashFlow }
+    ], t);
+    
+    // Assumptions
+    document.getElementById('assumptionsGrid').innerHTML = renderStatementItems([
+        { key: 'taxRate', value: d.assumptions.taxRate, isPercent: true },
+        { key: 'costOfDebt', value: d.assumptions.costOfDebt, isPercent: true },
+        { key: 'costOfEquity', value: d.assumptions.costOfEquity, isPercent: true },
+        { key: 'wacc', value: d.assumptions.wacc, isPercent: true }
+    ], t);
+}
+
+function renderStatementItems(items, t) {
+    return items.map(item => `
+        <div class="statement-item">
+            <span class="item-label">${t[item.key] || item.key}</span>
+            <span class="item-value">${item.isPercent ? formatPercent(item.value) : formatCurrency(item.value)}</span>
+        </div>
+    `).join('');
+}
+
+function renderHorizontal(t, d) {
+    if (d.horizontal.length === 0) return;
+    
+    // Table
+    document.getElementById('horizontalTableHead').innerHTML = `
+        <th>${t.vItemHeader}</th><th>2024</th><th>2023</th><th>${currentLanguage === 'ar' ? 'التغيير %' : 'Change %'}</th>
+    `;
+    document.getElementById('horizontalTableBody').innerHTML = d.horizontal.map(row => `
+        <tr>
+            <td>${t[row.item] || row.item}</td>
+            <td>${formatCurrency(row.y2024)}</td>
+            <td>${formatCurrency(row.y2023)}</td>
+            <td class="${row.change >= 0 ? 'positive' : 'negative'}">${formatPercent(row.change)}</td>
+        </tr>
+    `).join('');
+    
+    // Chart
+    renderHorizontalChart(d.horizontal, t);
+}
+
+function renderVertical(t, d) {
+    if (d.vertical.length === 0) return;
+    
+    // Table
+    document.getElementById('verticalTableBody').innerHTML = d.vertical.map(row => `
+        <tr>
+            <td>${t[row.item.toLowerCase()] || row.item}</td>
+            <td>${formatPercent(row.percent)}</td>
+            <td>${getInterpretation(row.item, row.percent, t)}</td>
+        </tr>
+    `).join('');
+    
+    // Chart
+    renderVerticalChart(d.vertical, t);
+}
+
+function renderRatios(t, d) {
+    const ratioGroups = [
+        { class: 'liquidity', title: t.liquidity, ratios: [
+            { key: 'currentRatio', value: d.ratios.currentRatio, benchmark: 1.5 },
+            { key: 'quickRatio', value: d.ratios.quickRatio, benchmark: 1.0 }
+        ]},
+        { class: 'profitability', title: t.profitability, ratios: [
+            { key: 'netMargin', value: d.ratios.netMargin, benchmark: 0.1, isPercent: true },
+            { key: 'roa', value: d.ratios.roa, benchmark: 0.05, isPercent: true },
+            { key: 'roe', value: d.ratios.roe, benchmark: 0.15, isPercent: true }
+        ]},
+        { class: 'leverage', title: t.leverage, ratios: [
+            { key: 'debtToEquity', value: d.ratios.debtToEquity, benchmark: 1.5, inverse: true }
+        ]}
+    ];
+    
+    document.getElementById('ratioCategories').innerHTML = ratioGroups.map(group => `
+        <div class="ratio-category ${group.class}">
+            <div class="ratio-category-header">${group.title}</div>
+            <div class="ratio-list">
+                ${group.ratios.map(r => `
+                    <div class="ratio-item">
+                        <span class="ratio-name">${t[r.key] || r.key}</span>
+                        <span class="ratio-value ${getRatioStatus(r.value, r.benchmark, r.inverse)}">
+                            ${r.isPercent ? formatPercent(r.value) : formatRatio(r.value)}
+                        </span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+    
+    renderRatioChart(d.ratios, t);
+}
+
+function renderValuation(t, d) {
+    const cards = [
+        { title: 'NPV', value: formatCurrency(d.valuation.npv), details: [
+            { label: t.wacc, value: formatPercent(d.assumptions.wacc) },
+            { label: t.freeCashFlow, value: formatCurrency(d.cashflow.freeCashFlow) }
+        ]},
+        { title: 'IRR', value: d.valuation.irr === '#NUM!' ? 'N/A' : formatPercent(d.valuation.irr), details: [
+            { label: 'Status', value: d.valuation.irr === '#NUM!' ? 'Calculation Error' : 'Computed' }
+        ]},
+        { title: 'WACC', value: formatPercent(d.assumptions.wacc), details: [
+            { label: t.costOfEquity, value: formatPercent(d.assumptions.costOfEquity) },
+            { label: t.costOfDebt, value: formatPercent(d.assumptions.costOfDebt) }
+        ]}
+    ];
+    
+    document.getElementById('valuationGrid').innerHTML = cards.map(card => `
+        <div class="valuation-card">
+            <div class="valuation-card-header"><h4>${card.title}</h4></div>
+            <div class="valuation-card-body">
+                <div class="valuation-main-value">${card.value}</div>
+                <ul class="valuation-details">
+                    ${card.details.map(d => `<li><span class="detail-label">${d.label}</span><span class="detail-value">${d.value}</span></li>`).join('')}
+                </ul>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('capmNotes').innerHTML = `<p style="white-space: pre-line; color: var(--text-secondary);">${d.valuation.capmNotes || 'No CAPM notes available.'}</p>`;
+}
+
+function renderDecision(t, d) {
+    const blocks = [
+        { title: t.executiveSummary, content: d.decision.summary, icon: '📋' },
+        { title: t.keyFindings, content: d.decision.findings, icon: '🔍' },
+        { title: t.investmentEvaluation, content: d.decision.evaluation, icon: '📊' }
+    ];
+    
+    const isPositive = d.decision.final.toLowerCase().includes('acceptable') || d.decision.final.toLowerCase().includes('مقبول');
+    
+    document.getElementById('decisionBody').innerHTML = `
+        ${blocks.map(b => `
+            <div class="decision-block">
+                <h4>${b.icon} ${b.title}</h4>
+                <p>${b.content || 'No data available.'}</p>
+            </div>
+        `).join('')}
+        <div class="final-verdict ${isPositive ? '' : 'negative-verdict'}">
+            <div class="verdict-label">${t.finalDecision}</div>
+            <div class="verdict-text">${d.decision.final || 'No final decision provided.'}</div>
+        </div>
+    `;
+}
+
+function renderMapping(t, d) {
+    const found = d.mapping.found.length;
+    const missing = 25 - found;
+    
+    document.getElementById('mappingStats').innerHTML = `
+        <div class="stat-box found"><div class="stat-number">${found}</div><div class="stat-label">${t.found}</div></div>
+        <div class="stat-box missing"><div class="stat-number">${missing}</div><div class="stat-label">${t.missing}</div></div>
+    `;
+    
+    document.getElementById('mappingGrid').innerHTML = d.mapping.found.map(item => `
+        <div class="mapping-item found"><span class="mapping-status">✓</span><span class="mapping-label">${item}</span></div>
+    `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════════════
+function renderHorizontalChart(data, t) {
+    const ctx = document.getElementById('horizontalChart').getContext('2d');
+    if (charts.horizontal) charts.horizontal.destroy();
+    
+    charts.horizontal = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(d => t[d.item] || d.item),
+            datasets: [
+                { label: '2024', data: data.map(d => d.y2024), backgroundColor: 'rgba(49, 130, 206, 0.8)' },
+                { label: '2023', data: data.map(d => d.y2023), backgroundColor: 'rgba(99, 179, 237, 0.8)' }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+function renderVerticalChart(data, t) {
+    const ctx = document.getElementById('verticalChart').getContext('2d');
+    if (charts.vertical) charts.vertical.destroy();
+    
+    charts.vertical = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.map(d => t[d.item.toLowerCase()] || d.item),
+            datasets: [{ data: data.map(d => d.percent * 100), backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+function renderRatioChart(ratios, t) {
+    const ctx = document.getElementById('ratioChart').getContext('2d');
+    if (charts.ratio) charts.ratio.destroy();
+    
+    const labels = [t.currentRatio, t.quickRatio, t.netMargin, t.roa, t.roe, t.debtToEquity];
+    const values = [ratios.currentRatio, ratios.quickRatio, (ratios.netMargin || 0) * 100, (ratios.roa || 0) * 100, (ratios.roe || 0) * 100, ratios.debtToEquity];
+    
+    charts.ratio = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{ label: currentLanguage === 'ar' ? 'القيمة' : 'Value', data: values, backgroundColor: ['#3b82f6', '#3b82f6', '#10b981', '#10b981', '#10b981', '#f59e0b'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function formatCurrency(value) {
+    if (value === null || value === undefined) return '-';
+    const symbol = currencySymbols[currentCurrency];
+    const converted = value * (exchangeRates[currentCurrency] / exchangeRates.USD);
+    return `${symbol}${converted.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}
+
+function formatPercent(value) {
+    if (value === null || value === undefined) return '-';
+    const pct = value < 1 && value > -1 ? value * 100 : value;
+    return `${pct.toFixed(2)}%`;
+}
+
+function formatRatio(value) {
+    if (value === null || value === undefined) return '-';
+    return value.toFixed(2);
+}
+
+function getRatioStatus(value, benchmark, inverse = false) {
+    if (value === null) return '';
+    if (inverse) return value < benchmark ? 'good' : value < benchmark * 1.5 ? 'warning' : 'bad';
+    return value >= benchmark ? 'good' : value >= benchmark * 0.5 ? 'warning' : 'bad';
+}
+
+function getInterpretation(item, value, t) {
+    if (item === 'COGS') return value > 0.5 ? (currentLanguage === 'ar' ? 'مرتفع' : 'High') : (currentLanguage === 'ar' ? 'مقبول' : 'Acceptable');
+    if (item === 'Net Income') return value > 0.2 ? (currentLanguage === 'ar' ? 'ممتاز' : 'Excellent') : (currentLanguage === 'ar' ? 'جيد' : 'Good');
+    return currentLanguage === 'ar' ? 'عادي' : 'Normal';
+}
+</script>
+</body>
+</html>
