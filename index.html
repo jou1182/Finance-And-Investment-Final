@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
 :root {
     --primary-900: #0c1929;
@@ -44,16 +45,38 @@
     --radius-xl: 24px;
     --radius-full: 9999px;
 }
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+    --primary-900: #0f172a;
+    --primary-800: #1e293b;
+    --primary-700: #334155;
+    --primary-600: #475569;
+    --primary-500: #64748b;
+    --bg-primary: #0f172a;
+    --bg-card: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    --border-color: #334155;
+    --border-light: #1e293b;
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+}
+
 [dir="rtl"] { --font-primary: var(--font-arabic); }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; scroll-behavior: smooth; }
 body {
     font-family: var(--font-primary);
-    background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    background: linear-gradient(180deg, var(--bg-primary) 0%, var(--border-color) 100%);
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
+    transition: all 0.3s ease;
 }
+
 .main-header {
     background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-800) 50%, var(--primary-700) 100%);
     color: var(--text-light);
@@ -63,6 +86,7 @@ body {
     z-index: 1000;
     box-shadow: var(--shadow-xl);
 }
+
 .header-content {
     max-width: 1600px;
     margin: 0 auto;
@@ -72,6 +96,7 @@ body {
     gap: 2rem;
     flex-wrap: wrap;
 }
+
 .logo-section { display: flex; align-items: center; gap: 1rem; }
 .logo-icon {
     width: 56px;
@@ -91,10 +116,11 @@ body {
     color: #fff;
 }
 .logo-text span { font-size: 0.875rem; color: var(--primary-300); }
-.header-controls { display: flex; align-items: center; gap: 1.5rem; }
+
+.header-controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .control-group { display: flex; align-items: center; gap: 0.5rem; }
 .control-group label { font-size: 0.875rem; color: var(--primary-300); font-weight: 500; }
-.control-group select {
+.control-group select, .control-group button {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ffffff;
@@ -102,12 +128,64 @@ body {
     border-radius: var(--radius-md);
     font-size: 0.875rem;
     cursor: pointer;
+    transition: all 0.2s;
+}
+.control-group select:hover, .control-group button:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 .control-group select option { background: var(--primary-800); color: #ffffff; }
+
+/* Dark Mode Toggle */
+.theme-toggle {
+    width: 50px;
+    height: 26px;
+    background: rgba(255,255,255,0.2);
+    border-radius: var(--radius-full);
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.theme-toggle::after {
+    content: '☀️';
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+[data-theme="dark"] .theme-toggle::after {
+    left: 26px;
+    content: '🌙';
+}
+
+/* PDF Export Button */
+.btn-export {
+    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-light) 100%);
+    color: var(--primary-900);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+}
+.btn-export:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
 .main-container { max-width: 1600px; margin: 0 auto; padding: 2rem; }
+
+/* Upload Section */
 .upload-section { margin-bottom: 2rem; }
 .upload-box {
-    background: rgba(255,255,255,0.95);
+    background: var(--bg-card);
     border: 2px dashed var(--border-color);
     border-radius: var(--radius-xl);
     padding: 3rem;
@@ -150,6 +228,8 @@ body {
 .processing-indicator.active { display: flex; }
 .spinner { width: 24px; height: 24px; border: 3px solid var(--border-color); border-top-color: var(--primary-500); border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Company Info */
 .company-info {
     display: none;
     background: linear-gradient(135deg, var(--primary-800) 0%, var(--primary-700) 100%);
@@ -172,9 +252,241 @@ body {
 .meta-item { display: flex; flex-direction: column; gap: 0.25rem; }
 .meta-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-300); }
 .meta-value { font-size: 1rem; font-weight: 600; }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* INVESTMENT SCORE PANEL - NEW */
+/* ═══════════════════════════════════════════════════════════════ */
+.investment-score-panel {
+    display: none;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+.investment-score-panel.visible { display: block; }
+
+.score-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.score-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.score-main-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr 300px;
+    gap: 2rem;
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
+    .score-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Investment Score Gauge */
+.score-gauge-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.score-gauge {
+    position: relative;
+    width: 220px;
+    height: 220px;
+}
+.score-gauge svg {
+    transform: rotate(-90deg);
+}
+.score-gauge-bg {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 20;
+}
+.score-gauge-fill {
+    fill: none;
+    stroke-width: 20;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease, stroke 0.5s ease;
+}
+.score-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+.score-number {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1;
+}
+.score-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Recommendation Badge */
+.recommendation-badge {
+    margin-top: 1.5rem;
+    padding: 1rem 2rem;
+    border-radius: var(--radius-full);
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: pulse 2s infinite;
+}
+.recommendation-badge.buy {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+.recommendation-badge.hold {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}
+.recommendation-badge.sell {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+/* Score Breakdown */
+.score-breakdown {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+.score-breakdown h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.breakdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+.breakdown-item:last-child { border-bottom: none; }
+.breakdown-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.breakdown-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+.breakdown-icon.liquidity { background: rgba(59, 130, 246, 0.1); }
+.breakdown-icon.profitability { background: rgba(16, 185, 129, 0.1); }
+.breakdown-icon.leverage { background: rgba(245, 158, 11, 0.1); }
+.breakdown-icon.valuation { background: rgba(139, 92, 246, 0.1); }
+.breakdown-icon.growth { background: rgba(236, 72, 153, 0.1); }
+.breakdown-name { font-weight: 500; color: var(--text-secondary); }
+.breakdown-score {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.breakdown-value {
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+.breakdown-bar {
+    width: 60px;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+.breakdown-bar-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease;
+}
+
+/* AI Insights Panel */
+.ai-insights-panel {
+    background: linear-gradient(135deg, var(--primary-800) 0%, var(--primary-900) 100%);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    color: white;
+}
+.ai-insights-panel h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.ai-badge {
+    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-light) 100%);
+    color: var(--primary-900);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-md);
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.insight-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-left: 3px solid;
+}
+.insight-item:last-child { margin-bottom: 0; }
+.insight-item.positive { border-left-color: var(--positive); }
+.insight-item.negative { border-left-color: var(--negative); }
+.insight-item.warning { border-left-color: var(--warning); }
+.insight-item.info { border-left-color: var(--info); }
+.insight-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.insight-text {
+    font-size: 0.875rem;
+    color: var(--primary-300);
+    line-height: 1.5;
+}
+
+/* Tab Navigation */
 .tab-navigation {
     display: none;
-    background: rgba(255,255,255,0.95);
+    background: var(--bg-card);
     border-radius: var(--radius-xl);
     padding: 0.5rem;
     margin-bottom: 2rem;
@@ -205,10 +517,14 @@ body {
 .tab-panel { display: none; animation: fadeIn 0.4s ease; }
 .tab-panel.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Cards */
 .card { background: var(--bg-card); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); overflow: hidden; margin-bottom: 1.5rem; }
 .card-header { background: var(--bg-primary); padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); }
 .card-title { font-size: 1.125rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
 .card-body { padding: 1.5rem; }
+
+/* KPI Grid */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
 .kpi-card {
     background: var(--bg-card);
@@ -230,6 +546,8 @@ body {
 .kpi-change { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); }
 .kpi-change.positive { background: var(--positive-bg); color: var(--positive); }
 .kpi-change.negative { background: var(--negative-bg); color: var(--negative); }
+
+/* Statement Sections */
 .statement-section { margin-bottom: 2rem; }
 .section-title {
     font-size: 1.25rem; font-weight: 700; color: var(--text-primary);
@@ -254,12 +572,16 @@ body {
     align-items: center;
     border: 1px solid var(--border-light);
 }
-.statement-item:hover { background: #ffffff; box-shadow: var(--shadow-md); }
+.statement-item:hover { background: var(--bg-card); box-shadow: var(--shadow-md); }
 .item-label { color: var(--text-secondary); font-weight: 500; }
 .item-value { font-weight: 700; color: var(--text-primary); }
+
+/* Charts */
 .chart-container { position: relative; height: 350px; padding: 1rem; }
 .chart-wrapper { background: var(--bg-card); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-md); margin-bottom: 2rem; }
 .chart-title { font-size: 1.125rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+/* Data Tables */
 .data-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
 .data-table thead { background: linear-gradient(135deg, var(--primary-800) 0%, var(--primary-700) 100%); color: #ffffff; }
 .data-table th { padding: 1rem 1.25rem; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
@@ -268,6 +590,8 @@ body {
 .data-table td { padding: 1rem 1.25rem; }
 .data-table .positive { color: var(--positive); }
 .data-table .negative { color: var(--negative); }
+
+/* Ratio Categories */
 .ratio-categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
 .ratio-category { background: var(--bg-card); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-md); }
 .ratio-category-header { padding: 1rem 1.5rem; font-weight: 700; color: #ffffff; text-transform: uppercase; font-size: 0.875rem; }
@@ -282,17 +606,22 @@ body {
 .ratio-value.good { background: var(--positive-bg); color: var(--positive); }
 .ratio-value.warning { background: var(--warning-bg); color: var(--warning); }
 .ratio-value.bad { background: var(--negative-bg); color: var(--negative); }
+
+/* Valuation Grid */
 .valuation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
 .valuation-card { background: var(--bg-card); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-md); }
 .valuation-card-header { background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%); color: #ffffff; padding: 1.25rem 1.5rem; }
 .valuation-card-header h4 { font-size: 1rem; font-weight: 700; margin: 0; text-transform: uppercase; }
 .valuation-card-body { padding: 1.5rem; }
 .valuation-main-value { font-size: 2.5rem; font-weight: 700; color: var(--primary-700); margin-bottom: 1rem; }
+[data-theme="dark"] .valuation-main-value { color: var(--primary-400); }
 .valuation-details { list-style: none; }
 .valuation-details li { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-light); }
 .valuation-details li:last-child { border-bottom: none; }
 .detail-label { color: var(--text-secondary); }
 .detail-value { font-weight: 600; color: var(--text-primary); }
+
+/* Decision Section */
 .decision-section { background: var(--bg-card); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-lg); margin-bottom: 2rem; }
 .decision-header { background: linear-gradient(135deg, var(--primary-800) 0%, var(--primary-700) 100%); color: #ffffff; padding: 2rem; text-align: center; }
 .decision-header h3 { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem 0; }
@@ -301,10 +630,14 @@ body {
 .decision-block { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
 .decision-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
 .decision-block h4 { font-size: 1.125rem; font-weight: 700; color: var(--primary-700); margin-bottom: 1rem; }
+[data-theme="dark"] .decision-block h4 { color: var(--primary-400); }
 .decision-block p { color: var(--text-secondary); line-height: 1.8; white-space: pre-line; }
 .final-verdict { background: linear-gradient(135deg, var(--positive) 0%, #059669 100%); color: #ffffff; padding: 2rem; border-radius: var(--radius-xl); text-align: center; }
+.final-verdict.negative-verdict { background: linear-gradient(135deg, var(--negative) 0%, #dc2626 100%); }
 .verdict-label { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.9; margin-bottom: 0.5rem; }
 .verdict-text { font-size: 1.5rem; font-weight: 700; }
+
+/* Mapping Report */
 .mapping-report { background: var(--bg-card); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-md); margin-top: 2rem; display: none; }
 .mapping-report.visible { display: block; }
 .mapping-header { background: var(--bg-primary); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
@@ -320,25 +653,36 @@ body {
 .stat-number { font-size: 2rem; font-weight: 700; }
 .stat-box.found .stat-number { color: var(--positive); }
 .stat-box.missing .stat-number { color: var(--negative); }
-.stat-label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); margin-top: 0.25rem; }
-.mapping-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
-.mapping-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; background: var(--bg-primary); border-radius: var(--radius-md); font-size: 0.875rem; }
+.stat-label { font-size: 0.875rem; color: var(--text-secondary); }
+.mapping-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; }
+.mapping-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-primary); border-radius: var(--radius-md); font-size: 0.875rem; }
 .mapping-item.found { border-left: 3px solid var(--positive); }
-.mapping-item.missing { border-left: 3px solid var(--negative); opacity: 0.6; }
-.main-footer { background: var(--primary-900); color: var(--text-light); padding: 2rem; text-align: center; margin-top: auto; }
+.mapping-status { font-size: 1rem; }
+
+/* Grid Layouts */
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+
+/* Footer */
+.main-footer {
+    background: var(--primary-900);
+    color: var(--text-light);
+    padding: 2rem;
+    margin-top: 3rem;
+}
+.footer-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    text-align: center;
+}
 .footer-brand { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
 .footer-credit { font-size: 0.875rem; color: var(--primary-300); }
-.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-@media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
-@media (max-width: 768px) {
-    .header-content { flex-direction: column; gap: 1rem; }
-    .tab-btn .tab-label { display: none; }
-    .kpi-value { font-size: 1.5rem; }
+
+/* Print Styles */
+@media print {
+    .main-header, .upload-section, .tab-navigation, .mapping-report { display: none !important; }
+    .tab-panel { display: block !important; page-break-inside: avoid; }
+    body { background: white; }
 }
-[dir="rtl"] .kpi-card::before { left: auto; right: 0; }
-[dir="rtl"] .mapping-item { border-left: none; border-right: 3px solid var(--positive); }
-[dir="rtl"] .mapping-item.missing { border-right-color: var(--negative); }
-[dir="rtl"] .data-table th, [dir="rtl"] .data-table td { text-align: right; }
     </style>
 </head>
 <body>
@@ -362,17 +706,26 @@ body {
                 <div class="control-group">
                     <label id="currLabel">Currency:</label>
                     <select id="currencyToggle">
-                        <option value="USD">USD ($)</option>
-                        <option value="SAR">SAR (﷼)</option>
-                        <option value="EUR">EUR (€)</option>
-                        <option value="GBP">GBP (£)</option>
+                        <option value="USD">$ USD</option>
+                        <option value="SAR">﷼ SAR</option>
+                        <option value="EUR">€ EUR</option>
+                        <option value="GBP">£ GBP</option>
                     </select>
+                </div>
+                <div class="control-group">
+                    <div class="theme-toggle" id="themeToggle" title="Toggle Dark Mode"></div>
+                </div>
+                <div class="control-group">
+                    <button class="btn-export" id="exportPdfBtn" style="display:none;">
+                        <span>📄</span>
+                        <span id="exportPdfText">Export PDF</span>
+                    </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="main-container">
+    <main class="main-container" id="mainContent">
         <section id="uploadSection" class="upload-section">
             <div class="upload-box" id="uploadBox">
                 <div class="upload-icon">📁</div>
@@ -414,6 +767,48 @@ body {
                 <div class="meta-item">
                     <span class="meta-label" id="objectiveLabel">Objective</span>
                     <span class="meta-value" id="objectiveValue">-</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- NEW: Investment Score Panel -->
+        <section id="investmentScorePanel" class="investment-score-panel">
+            <div class="score-header">
+                <h2 id="investmentScoreTitle">📈 Investment Score & AI Analysis</h2>
+            </div>
+            <div class="score-main-grid">
+                <!-- Score Gauge -->
+                <div class="score-gauge-container">
+                    <div class="score-gauge">
+                        <svg viewBox="0 0 200 200">
+                            <circle class="score-gauge-bg" cx="100" cy="100" r="80"></circle>
+                            <circle class="score-gauge-fill" id="scoreGaugeFill" cx="100" cy="100" r="80" stroke-dasharray="502" stroke-dashoffset="502"></circle>
+                        </svg>
+                        <div class="score-value">
+                            <div class="score-number" id="investmentScoreValue">0</div>
+                            <div class="score-label" id="scoreOfLabel">of 100</div>
+                        </div>
+                    </div>
+                    <div class="recommendation-badge" id="recommendationBadge">
+                        <span id="recommendationIcon">📊</span>
+                        <span id="recommendationText">ANALYZING...</span>
+                    </div>
+                </div>
+
+                <!-- Score Breakdown -->
+                <div class="score-breakdown">
+                    <h3><span>📊</span> <span id="scoreBreakdownTitle">Score Breakdown</span></h3>
+                    <div id="scoreBreakdownContent"></div>
+                </div>
+
+                <!-- AI Insights -->
+                <div class="ai-insights-panel">
+                    <h3>
+                        <span>🤖</span>
+                        <span id="aiInsightsTitle">AI Insights</span>
+                        <span class="ai-badge">SMART</span>
+                    </h3>
+                    <div id="aiInsightsContent"></div>
                 </div>
             </div>
         </section>
@@ -542,7 +937,7 @@ body {
     <footer class="main-footer">
         <div class="footer-content">
             <div class="footer-brand" id="footerBrand">Financial Analysis Platform</div>
-            <div class="footer-credit" id="footerCredit">Developed for Advanced Financial Decision Support</div>
+            <div class="footer-credit" id="footerCredit">Developed for Advanced Financial Decision Support | Dr. Jou - JoUTricks</div>
         </div>
     </footer>
 
@@ -588,7 +983,7 @@ const translations = {
         decisionSubtitle: 'Comprehensive Analysis Summary',
         mappingTitle: 'Data Mapping Report',
         footerBrand: 'Financial Analysis Platform',
-        footerCredit: 'Developed for Advanced Financial Decision Support',
+        footerCredit: 'Developed for Advanced Financial Decision Support | Dr. Jou - JoUTricks',
         revenue: 'Revenue', cogs: 'COGS', operatingExpenses: 'Operating Expenses',
         ebit: 'EBIT', netIncome: 'Net Income', currentAssets: 'Current Assets',
         totalAssets: 'Total Assets', currentLiabilities: 'Current Liabilities',
@@ -604,7 +999,20 @@ const translations = {
         leverage: 'Leverage Ratios', found: 'Found', missing: 'Missing',
         good: 'Good', warning: 'Warning', bad: 'Poor',
         executiveSummary: 'Executive Summary', keyFindings: 'Key Financial Findings',
-        investmentEvaluation: 'Investment Evaluation', finalDecision: 'Final Investment Decision'
+        investmentEvaluation: 'Investment Evaluation', finalDecision: 'Final Investment Decision',
+        exportPdfText: 'Export PDF',
+        investmentScoreTitle: '📈 Investment Score & AI Analysis',
+        scoreOfLabel: 'of 100',
+        scoreBreakdownTitle: 'Score Breakdown',
+        aiInsightsTitle: 'AI Insights',
+        buy: 'BUY',
+        hold: 'HOLD',
+        sell: 'SELL',
+        liquidityScore: 'Liquidity',
+        profitabilityScore: 'Profitability',
+        leverageScore: 'Leverage',
+        valuationScore: 'Valuation',
+        growthScore: 'Growth'
     },
     ar: {
         platformTitle: 'منصة التحليل المالي',
@@ -643,7 +1051,7 @@ const translations = {
         decisionSubtitle: 'ملخص التحليل الشامل',
         mappingTitle: 'تقرير ربط البيانات',
         footerBrand: 'منصة التحليل المالي',
-        footerCredit: 'مطور لدعم القرارات المالية المتقدمة',
+        footerCredit: 'مطور لدعم القرارات المالية المتقدمة | د. جو - JoUTricks',
         revenue: 'الإيرادات', cogs: 'تكلفة المبيعات', operatingExpenses: 'المصروفات التشغيلية',
         ebit: 'الربح التشغيلي', netIncome: 'صافي الدخل', currentAssets: 'الأصول المتداولة',
         totalAssets: 'إجمالي الأصول', currentLiabilities: 'الالتزامات المتداولة',
@@ -659,7 +1067,20 @@ const translations = {
         liquidity: 'نسب السيولة', profitability: 'نسب الربحية', leverage: 'نسب الرفع المالي',
         found: 'موجود', missing: 'مفقود', good: 'جيد', warning: 'تحذير', bad: 'ضعيف',
         executiveSummary: 'الملخص التنفيذي', keyFindings: 'النتائج المالية الرئيسية',
-        investmentEvaluation: 'تقييم الاستثمار', finalDecision: 'قرار الاستثمار النهائي'
+        investmentEvaluation: 'تقييم الاستثمار', finalDecision: 'قرار الاستثمار النهائي',
+        exportPdfText: 'تصدير PDF',
+        investmentScoreTitle: '📈 درجة الاستثمار والتحليل الذكي',
+        scoreOfLabel: 'من 100',
+        scoreBreakdownTitle: 'تفصيل الدرجة',
+        aiInsightsTitle: 'رؤى ذكية',
+        buy: 'شراء',
+        hold: 'احتفاظ',
+        sell: 'بيع',
+        liquidityScore: 'السيولة',
+        profitabilityScore: 'الربحية',
+        leverageScore: 'الرفع المالي',
+        valuationScore: 'التقييم',
+        growthScore: 'النمو'
     }
 };
 
@@ -671,6 +1092,7 @@ const exchangeRates = { USD: 1, SAR: 3.75, EUR: 0.92, GBP: 0.79 };
 // ═══════════════════════════════════════════════════════════════
 let currentLanguage = 'en';
 let currentCurrency = 'USD';
+let currentTheme = 'light';
 let currentData = null;
 let charts = {};
 
@@ -713,6 +1135,13 @@ function initializeApp() {
         if (currentData) renderDashboard();
     });
     
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+        currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        if (currentData) updateChartsTheme();
+    });
+    
     // Tab navigation
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
@@ -720,6 +1149,9 @@ function initializeApp() {
     
     // Mapping report toggle
     document.getElementById('mappingHeader').addEventListener('click', toggleMappingReport);
+    
+    // PDF Export
+    document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
     
     applyTranslations();
 }
@@ -747,6 +1179,33 @@ function toggleMappingReport() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// PDF EXPORT
+// ═══════════════════════════════════════════════════════════════
+function exportToPDF() {
+    const element = document.getElementById('mainContent');
+    const companyName = currentData?.company?.name || 'Financial_Report';
+    const filename = `${companyName}_Analysis_${new Date().toISOString().split('T')[0]}.pdf`;
+    
+    const opt = {
+        margin: 10,
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+    
+    // Hide upload section temporarily
+    const uploadSection = document.getElementById('uploadSection');
+    const originalDisplay = uploadSection.style.display;
+    uploadSection.style.display = 'none';
+    
+    html2pdf().set(opt).from(element).save().then(() => {
+        uploadSection.style.display = originalDisplay;
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // FILE PROCESSING
 // ═══════════════════════════════════════════════════════════════
 async function processFile(file) {
@@ -764,8 +1223,10 @@ async function processFile(file) {
         
         document.getElementById('uploadSection').style.display = 'none';
         document.getElementById('companyInfo').classList.add('visible');
+        document.getElementById('investmentScorePanel').classList.add('visible');
         document.getElementById('tabNavigation').classList.add('visible');
         document.getElementById('mappingReport').classList.add('visible');
+        document.getElementById('exportPdfBtn').style.display = 'flex';
     } catch (error) {
         console.error('Error:', error);
         alert(currentLanguage === 'ar' ? 'خطأ في معالجة الملف' : 'Error processing file');
@@ -868,9 +1329,6 @@ function parseFinancialData(sheets) {
         if (cellA === 'irr') { data.valuation.irr = cellB; data.mapping.found.push('IRR'); }
         
         // Horizontal Analysis
-        if (cellA === 'item' && row.includes(2024)) {
-            // Header row - capture years
-        }
         if ((cellA === 'revenue' || cellA === 'net income' || cellA === 'total assets' || cellA === 'equity') && row[1] && row[2]) {
             data.horizontal.push({ item: cellA, y2024: parseNum(row[1]), y2023: parseNum(row[2]), change: parseNum(row[3]) });
         }
@@ -910,6 +1368,184 @@ function parseNum(val) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// INVESTMENT SCORE CALCULATION
+// ═══════════════════════════════════════════════════════════════
+function calculateInvestmentScore(d) {
+    const scores = {
+        liquidity: 0,
+        profitability: 0,
+        leverage: 0,
+        valuation: 0,
+        growth: 0
+    };
+    
+    // Liquidity Score (0-20)
+    const currentRatio = d.ratios.currentRatio || 0;
+    const quickRatio = d.ratios.quickRatio || 0;
+    if (currentRatio >= 2) scores.liquidity = 20;
+    else if (currentRatio >= 1.5) scores.liquidity = 16;
+    else if (currentRatio >= 1) scores.liquidity = 12;
+    else if (currentRatio >= 0.5) scores.liquidity = 6;
+    else scores.liquidity = 2;
+    
+    // Profitability Score (0-25)
+    const netMargin = (d.ratios.netMargin || 0);
+    const roe = (d.ratios.roe || 0);
+    const roa = (d.ratios.roa || 0);
+    
+    let profitScore = 0;
+    if (netMargin > 0.15) profitScore += 10;
+    else if (netMargin > 0.08) profitScore += 7;
+    else if (netMargin > 0.03) profitScore += 4;
+    else if (netMargin > 0) profitScore += 2;
+    
+    if (roe > 0.20) profitScore += 8;
+    else if (roe > 0.12) profitScore += 6;
+    else if (roe > 0.05) profitScore += 4;
+    else if (roe > 0) profitScore += 2;
+    
+    if (roa > 0.10) profitScore += 7;
+    else if (roa > 0.05) profitScore += 5;
+    else if (roa > 0.02) profitScore += 3;
+    else if (roa > 0) profitScore += 1;
+    
+    scores.profitability = Math.min(25, profitScore);
+    
+    // Leverage Score (0-20) - Lower debt is better
+    const debtToEquity = d.ratios.debtToEquity || 0;
+    if (debtToEquity < 0.5) scores.leverage = 20;
+    else if (debtToEquity < 1) scores.leverage = 16;
+    else if (debtToEquity < 1.5) scores.leverage = 12;
+    else if (debtToEquity < 2) scores.leverage = 8;
+    else scores.leverage = 4;
+    
+    // Valuation Score (0-20)
+    const npv = d.valuation.npv || 0;
+    const irr = parseNum(d.valuation.irr) || 0;
+    const wacc = d.assumptions.wacc || 0.1;
+    
+    let valScore = 0;
+    if (npv > 0) valScore += 10;
+    else if (npv === 0) valScore += 5;
+    
+    if (irr > wacc * 1.5) valScore += 10;
+    else if (irr > wacc) valScore += 7;
+    else if (irr > wacc * 0.8) valScore += 4;
+    
+    scores.valuation = Math.min(20, valScore);
+    
+    // Growth Score (0-15)
+    const fcf = d.cashflow.freeCashFlow || 0;
+    const revenue = d.income.revenue || 1;
+    const fcfMargin = fcf / revenue;
+    
+    if (fcfMargin > 0.15) scores.growth = 15;
+    else if (fcfMargin > 0.08) scores.growth = 12;
+    else if (fcfMargin > 0.03) scores.growth = 8;
+    else if (fcfMargin > 0) scores.growth = 5;
+    else scores.growth = 2;
+    
+    const totalScore = scores.liquidity + scores.profitability + scores.leverage + scores.valuation + scores.growth;
+    
+    return { scores, totalScore };
+}
+
+function getRecommendation(score) {
+    if (score >= 70) return { type: 'buy', icon: '🚀', color: '#10b981' };
+    if (score >= 45) return { type: 'hold', icon: '⏸️', color: '#f59e0b' };
+    return { type: 'sell', icon: '⚠️', color: '#ef4444' };
+}
+
+function generateAIInsights(d, scores, totalScore) {
+    const t = translations[currentLanguage];
+    const insights = [];
+    
+    // Liquidity insight
+    const currentRatio = d.ratios.currentRatio || 0;
+    if (currentRatio >= 2) {
+        insights.push({
+            type: 'positive',
+            title: currentLanguage === 'ar' ? 'سيولة قوية' : 'Strong Liquidity',
+            text: currentLanguage === 'ar' 
+                ? `نسبة التداول ${currentRatio.toFixed(2)} تشير إلى قدرة ممتازة على سداد الالتزامات قصيرة الأجل.`
+                : `Current ratio of ${currentRatio.toFixed(2)} indicates excellent ability to meet short-term obligations.`
+        });
+    } else if (currentRatio < 1) {
+        insights.push({
+            type: 'negative',
+            title: currentLanguage === 'ar' ? 'مخاطر سيولة' : 'Liquidity Risk',
+            text: currentLanguage === 'ar'
+                ? `نسبة التداول ${currentRatio.toFixed(2)} أقل من 1، مما يشير إلى صعوبات محتملة في السيولة.`
+                : `Current ratio of ${currentRatio.toFixed(2)} below 1 indicates potential liquidity difficulties.`
+        });
+    }
+    
+    // Profitability insight
+    const netMargin = (d.ratios.netMargin || 0) * 100;
+    if (netMargin > 15) {
+        insights.push({
+            type: 'positive',
+            title: currentLanguage === 'ar' ? 'ربحية ممتازة' : 'Excellent Profitability',
+            text: currentLanguage === 'ar'
+                ? `هامش صافي الربح ${netMargin.toFixed(1)}% يتجاوز معايير الصناعة.`
+                : `Net margin of ${netMargin.toFixed(1)}% exceeds industry benchmarks.`
+        });
+    } else if (netMargin < 5 && netMargin > 0) {
+        insights.push({
+            type: 'warning',
+            title: currentLanguage === 'ar' ? 'هامش ربح ضعيف' : 'Thin Margins',
+            text: currentLanguage === 'ar'
+                ? `هامش صافي الربح ${netMargin.toFixed(1)}% يحتاج إلى تحسين.`
+                : `Net margin of ${netMargin.toFixed(1)}% needs improvement.`
+        });
+    }
+    
+    // NPV insight
+    const npv = d.valuation.npv || 0;
+    if (npv > 0) {
+        insights.push({
+            type: 'positive',
+            title: currentLanguage === 'ar' ? 'صافي القيمة الحالية إيجابي' : 'Positive NPV',
+            text: currentLanguage === 'ar'
+                ? `المشروع يضيف قيمة مع NPV موجب بقيمة ${formatCurrency(npv)}.`
+                : `Project adds value with positive NPV of ${formatCurrency(npv)}.`
+        });
+    } else if (npv < 0) {
+        insights.push({
+            type: 'negative',
+            title: currentLanguage === 'ar' ? 'صافي القيمة الحالية سلبي' : 'Negative NPV',
+            text: currentLanguage === 'ar'
+                ? `المشروع قد يدمر القيمة مع NPV سلبي.`
+                : `Project may destroy value with negative NPV.`
+        });
+    }
+    
+    // Debt insight
+    const debtToEquity = d.ratios.debtToEquity || 0;
+    if (debtToEquity > 2) {
+        insights.push({
+            type: 'warning',
+            title: currentLanguage === 'ar' ? 'رفع مالي عالي' : 'High Leverage',
+            text: currentLanguage === 'ar'
+                ? `نسبة الدين إلى حقوق الملكية ${debtToEquity.toFixed(2)} تشير إلى مخاطر تمويلية.`
+                : `Debt/Equity ratio of ${debtToEquity.toFixed(2)} indicates financing risks.`
+        });
+    }
+    
+    // Overall recommendation
+    const rec = getRecommendation(totalScore);
+    insights.push({
+        type: 'info',
+        title: currentLanguage === 'ar' ? 'التوصية العامة' : 'Overall Recommendation',
+        text: currentLanguage === 'ar'
+            ? `بناءً على التحليل الشامل، التوصية هي: ${t[rec.type].toUpperCase()}`
+            : `Based on comprehensive analysis, recommendation is: ${t[rec.type].toUpperCase()}`
+    });
+    
+    return insights;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // RENDERING
 // ═══════════════════════════════════════════════════════════════
 function renderDashboard() {
@@ -924,6 +1560,7 @@ function renderDashboard() {
     document.getElementById('currencyValue').textContent = d.company.currency || '-';
     document.getElementById('objectiveValue').textContent = d.company.objective || '-';
     
+    renderInvestmentScore(t, d);
     renderOverview(t, d);
     renderHorizontal(t, d);
     renderVertical(t, d);
@@ -933,8 +1570,85 @@ function renderDashboard() {
     renderMapping(t, d);
 }
 
+function renderInvestmentScore(t, d) {
+    const { scores, totalScore } = calculateInvestmentScore(d);
+    const recommendation = getRecommendation(totalScore);
+    const insights = generateAIInsights(d, scores, totalScore);
+    
+    // Animate score gauge
+    const gauge = document.getElementById('scoreGaugeFill');
+    const circumference = 2 * Math.PI * 80;
+    const offset = circumference - (totalScore / 100) * circumference;
+    
+    setTimeout(() => {
+        gauge.style.strokeDashoffset = offset;
+        gauge.style.stroke = recommendation.color;
+    }, 100);
+    
+    // Animate score number
+    const scoreEl = document.getElementById('investmentScoreValue');
+    animateValue(scoreEl, 0, totalScore, 1000);
+    scoreEl.style.color = recommendation.color;
+    
+    // Recommendation badge
+    const badge = document.getElementById('recommendationBadge');
+    badge.className = `recommendation-badge ${recommendation.type}`;
+    document.getElementById('recommendationIcon').textContent = recommendation.icon;
+    document.getElementById('recommendationText').textContent = t[recommendation.type].toUpperCase();
+    
+    // Score breakdown
+    const breakdownItems = [
+        { key: 'liquidityScore', value: scores.liquidity, max: 20, icon: '💧', class: 'liquidity' },
+        { key: 'profitabilityScore', value: scores.profitability, max: 25, icon: '📈', class: 'profitability' },
+        { key: 'leverageScore', value: scores.leverage, max: 20, icon: '⚖️', class: 'leverage' },
+        { key: 'valuationScore', value: scores.valuation, max: 20, icon: '💰', class: 'valuation' },
+        { key: 'growthScore', value: scores.growth, max: 15, icon: '🚀', class: 'growth' }
+    ];
+    
+    document.getElementById('scoreBreakdownContent').innerHTML = breakdownItems.map(item => {
+        const percent = (item.value / item.max) * 100;
+        const color = percent >= 70 ? '#10b981' : percent >= 40 ? '#f59e0b' : '#ef4444';
+        return `
+            <div class="breakdown-item">
+                <div class="breakdown-info">
+                    <div class="breakdown-icon ${item.class}">${item.icon}</div>
+                    <span class="breakdown-name">${t[item.key]}</span>
+                </div>
+                <div class="breakdown-score">
+                    <span class="breakdown-value" style="color: ${color}">${item.value}/${item.max}</span>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-bar-fill" style="width: ${percent}%; background: ${color}"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    // AI Insights
+    document.getElementById('aiInsightsContent').innerHTML = insights.map(insight => `
+        <div class="insight-item ${insight.type}">
+            <div class="insight-title">
+                ${insight.type === 'positive' ? '✅' : insight.type === 'negative' ? '❌' : insight.type === 'warning' ? '⚠️' : 'ℹ️'}
+                ${insight.title}
+            </div>
+            <div class="insight-text">${insight.text}</div>
+        </div>
+    `).join('');
+}
+
+function animateValue(el, start, end, duration) {
+    const startTime = performance.now();
+    const update = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(start + (end - start) * easeOut);
+        if (progress < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+}
+
 function renderOverview(t, d) {
-    // KPI Cards
     const kpis = [
         { key: 'revenue', value: d.income.revenue, icon: '💰', status: 'positive' },
         { key: 'netIncome', value: d.income.netIncome, icon: '📈', status: 'positive' },
@@ -952,7 +1666,6 @@ function renderOverview(t, d) {
         </div>
     `).join('');
     
-    // Income Statement
     document.getElementById('incomeGrid').innerHTML = renderStatementItems([
         { key: 'revenue', value: d.income.revenue },
         { key: 'cogs', value: d.income.cogs },
@@ -961,7 +1674,6 @@ function renderOverview(t, d) {
         { key: 'netIncome', value: d.income.netIncome }
     ], t);
     
-    // Balance Sheet
     document.getElementById('balanceGrid').innerHTML = renderStatementItems([
         { key: 'currentAssets', value: d.balance.currentAssets },
         { key: 'totalAssets', value: d.balance.totalAssets },
@@ -971,14 +1683,12 @@ function renderOverview(t, d) {
         { key: 'totalDebt', value: d.balance.totalDebt }
     ], t);
     
-    // Cash Flow
     document.getElementById('cashflowGrid').innerHTML = renderStatementItems([
         { key: 'operatingCashFlow', value: d.cashflow.operatingCashFlow },
         { key: 'capex', value: d.cashflow.capex },
         { key: 'freeCashFlow', value: d.cashflow.freeCashFlow }
     ], t);
     
-    // Assumptions
     document.getElementById('assumptionsGrid').innerHTML = renderStatementItems([
         { key: 'taxRate', value: d.assumptions.taxRate, isPercent: true },
         { key: 'costOfDebt', value: d.assumptions.costOfDebt, isPercent: true },
@@ -999,7 +1709,6 @@ function renderStatementItems(items, t) {
 function renderHorizontal(t, d) {
     if (d.horizontal.length === 0) return;
     
-    // Table
     document.getElementById('horizontalTableHead').innerHTML = `
         <th>${t.vItemHeader}</th><th>2024</th><th>2023</th><th>${currentLanguage === 'ar' ? 'التغيير %' : 'Change %'}</th>
     `;
@@ -1012,14 +1721,12 @@ function renderHorizontal(t, d) {
         </tr>
     `).join('');
     
-    // Chart
     renderHorizontalChart(d.horizontal, t);
 }
 
 function renderVertical(t, d) {
     if (d.vertical.length === 0) return;
     
-    // Table
     document.getElementById('verticalTableBody').innerHTML = d.vertical.map(row => `
         <tr>
             <td>${t[row.item.toLowerCase()] || row.item}</td>
@@ -1028,7 +1735,6 @@ function renderVertical(t, d) {
         </tr>
     `).join('');
     
-    // Chart
     renderVerticalChart(d.vertical, t);
 }
 
@@ -1137,9 +1843,39 @@ function renderMapping(t, d) {
 // ═══════════════════════════════════════════════════════════════
 // CHARTS
 // ═══════════════════════════════════════════════════════════════
+function getChartColors() {
+    const isDark = currentTheme === 'dark';
+    return {
+        text: isDark ? '#f1f5f9' : '#1e293b',
+        grid: isDark ? '#334155' : '#e2e8f0'
+    };
+}
+
+function updateChartsTheme() {
+    const colors = getChartColors();
+    Object.values(charts).forEach(chart => {
+        if (chart && chart.options) {
+            if (chart.options.scales) {
+                Object.values(chart.options.scales).forEach(scale => {
+                    scale.ticks = scale.ticks || {};
+                    scale.ticks.color = colors.text;
+                    scale.grid = scale.grid || {};
+                    scale.grid.color = colors.grid;
+                });
+            }
+            if (chart.options.plugins && chart.options.plugins.legend) {
+                chart.options.plugins.legend.labels = chart.options.plugins.legend.labels || {};
+                chart.options.plugins.legend.labels.color = colors.text;
+            }
+            chart.update();
+        }
+    });
+}
+
 function renderHorizontalChart(data, t) {
     const ctx = document.getElementById('horizontalChart').getContext('2d');
     if (charts.horizontal) charts.horizontal.destroy();
+    const colors = getChartColors();
     
     charts.horizontal = new Chart(ctx, {
         type: 'bar',
@@ -1150,27 +1886,41 @@ function renderHorizontalChart(data, t) {
                 { label: '2023', data: data.map(d => d.y2023), backgroundColor: 'rgba(99, 179, 237, 0.8)' }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: colors.text } } },
+            scales: {
+                x: { ticks: { color: colors.text }, grid: { color: colors.grid } },
+                y: { ticks: { color: colors.text }, grid: { color: colors.grid } }
+            }
+        }
     });
 }
 
 function renderVerticalChart(data, t) {
     const ctx = document.getElementById('verticalChart').getContext('2d');
     if (charts.vertical) charts.vertical.destroy();
+    const colors = getChartColors();
     
     charts.vertical = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: data.map(d => t[d.item.toLowerCase()] || d.item),
-            datasets: [{ data: data.map(d => d.percent * 100), backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6'] }]
+            datasets: [{ data: data.map(d => Math.abs(d.percent) * 100), backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6'] }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: colors.text } } }
+        }
     });
 }
 
 function renderRatioChart(ratios, t) {
     const ctx = document.getElementById('ratioChart').getContext('2d');
     if (charts.ratio) charts.ratio.destroy();
+    const colors = getChartColors();
     
     const labels = [t.currentRatio, t.quickRatio, t.netMargin, t.roa, t.roe, t.debtToEquity];
     const values = [ratios.currentRatio, ratios.quickRatio, (ratios.netMargin || 0) * 100, (ratios.roa || 0) * 100, (ratios.roe || 0) * 100, ratios.debtToEquity];
@@ -1181,7 +1931,16 @@ function renderRatioChart(ratios, t) {
             labels: labels,
             datasets: [{ label: currentLanguage === 'ar' ? 'القيمة' : 'Value', data: values, backgroundColor: ['#3b82f6', '#3b82f6', '#10b981', '#10b981', '#10b981', '#f59e0b'] }]
         },
-        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { legend: { labels: { color: colors.text } } },
+            scales: {
+                x: { ticks: { color: colors.text }, grid: { color: colors.grid } },
+                y: { ticks: { color: colors.text }, grid: { color: colors.grid } }
+            }
+        }
     });
 }
 
