@@ -736,9 +736,9 @@ body {
                         <span>📄</span>
                         <span id="selectFileBtn">Select Excel File</span>
                     </button>
-                    <input type="file" id="fileInput" accept=".xlsx,.xls">
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.pdf">
                 </div>
-                <span class="upload-hint" id="uploadHint">Supported: .xlsx, .xls files with financial statement data</span>
+                <span class="upload-hint" id="uploadHint">Supported: PDF financial reports, Excel (.xlsx, .xls)</span>
                 <div class="processing-indicator" id="processingIndicator">
                     <div class="spinner"></div>
                     <span id="processingText">Processing financial data...</span>
@@ -954,7 +954,7 @@ const translations = {
         uploadTitle: 'Upload Financial Data',
         uploadDesc: 'Drop your Excel file here or click to browse',
         selectFileBtn: 'Select Excel File',
-        uploadHint: 'Supported: .xlsx, .xls files with financial statement data',
+        uploadHint: 'Supported: PDF financial reports, Excel (.xlsx, .xls)',
         processingText: 'Processing financial data...',
         industryLabel: 'Industry',
         periodLabel: 'Period',
@@ -1022,7 +1022,18 @@ const translations = {
         uploadTitle: 'رفع البيانات المالية',
         uploadDesc: 'اسحب ملف Excel هنا أو انقر للتصفح',
         selectFileBtn: 'اختر ملف Excel',
-        uploadHint: 'مدعوم: ملفات .xlsx, .xls تحتوي على بيانات مالية',
+        uploadHint: 'مدعوم: تقارير PDF المالية، Excel (.xlsx, .xls)',
+```
+
+---
+
+## 📋 **ملخص التعديلات:**
+```
+1. ✅ السطر 650: إضافة .pdf للـ accept
+2. ✅ السطر 647: تحديث نص uploadHint
+3. ✅ السطر 1158: تعديل processFile function
+4. ✅ بعد السطر 1185: إضافة processPDFFile function
+5. ✅ السطر 780: تحديث الترجمات
         processingText: 'جاري معالجة البيانات المالية...',
         industryLabel: 'القطاع',
         periodLabel: 'الفترة',
@@ -1209,11 +1220,31 @@ function exportToPDF() {
 // FILE PROCESSING
 // ═══════════════════════════════════════════════════════════════
 async function processFile(file) {
-    if (!file.name.match(/\.xlsx?$/i)) {
-        alert(currentLanguage === 'ar' ? 'يرجى تحميل ملف Excel صالح' : 'Please upload a valid Excel file');
+    const fileName = file.name.toLowerCase();
+    const isPDF = fileName.endsWith('.pdf');
+    const isExcel = fileName.match(/\.xlsx?$/i);
+    
+    if (!isPDF && !isExcel) {
+        alert(currentLanguage === 'ar' ? 'يرجى تحميل ملف PDF أو Excel' : 'Please upload a PDF or Excel file');
         return;
     }
+    document.getElementById('processingIndicator').classList.add('active');
     
+    try {
+        let data;
+        
+        // Handle PDF files
+        if (isPDF) {
+            data = await processPDFFile(file);
+        }
+        // Handle Excel files
+        else {
+            const excelData = await readExcelFile(file);
+            data = parseFinancialData(excelData);
+        }
+        
+        currentData = data;
+        renderDashboard();
     document.getElementById('processingIndicator').classList.add('active');
     
     try {
@@ -1252,7 +1283,91 @@ function readExcelFile(file) {
         reader.readAsArrayBuffer(file);
     });
 }
-
+// ═══════════════════════════════════════════════════════════════
+// PDF PROCESSING VIA N8N
+// ═══════════════════════════════════════════════════════════════
+async function processPDFFile(file) {
+    // Update status message
+    const statusEl = document.getElementById('processingText');
+    const originalText = statusEl.textContent;
+    statusEl.textContent = currentLanguage === 'ar' 
+        ? 'جاري استخراج البيانات من PDF... قد يستغرق 30-60 ثانية'
+        : 'Extracting data from PDF... This may take 30-60 seconds';
+    
+    try {
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('data', file);
+        
+        // Send to n8n webhook
+        const response = await fetch('https://tg.joutricks.cfd/webhook/extract-financial-data', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        
+        // Check response type
+        const contentType = response.headers.get('content-type');
+        
+        // If Excel file returned, read it
+        if (contentType && contentType.includes('application/vnd.openxmlformats')) {
+            statusEl.textContent = currentLanguage === 'ar'
+                ? 'تم الاستخراج! جاري تحليل البيانات...'
+                : 'Extracted! Analyzing data...';
+            
+            const excelBlob = await response.blob();
+            const excelFile = new File([excelBlob], 'extracted_data.xlsx');
+            const excelData = await readExcelFile(excelFile);
+            const parsedData = parseFinancialData(excelData);
+            
+            statusEl.textContent = originalText;
+            return parsedData;
+        }
+        // If JSON returned
+        else {
+            const result = await response.json();
+            
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            
+            // If JSON contains financial data directly
+            if (result.company || result.income) {
+                statusEl.textContent = originalText;
+                return result;
+            }
+            
+            throw new Error('Unexpected response format');
+        }
+        
+    } catch (error) {
+        console.error('PDF processing error:', error);
+        
+        // User-friendly error messages
+        let errorMsg = currentLanguage === 'ar'
+            ? 'فشل استخراج البيانات من PDF. '
+            : 'Failed to extract data from PDF. ';
+        
+        if (error.message.includes('Failed to fetch')) {
+            errorMsg += currentLanguage === 'ar'
+                ? 'تحقق من اتصالك بالإنترنت.'
+                : 'Please check your internet connection.';
+        } else if (error.message.includes('500')) {
+            errorMsg += currentLanguage === 'ar'
+                ? 'خطأ في الخادم. حاول مرة أخرى.'
+                : 'Server error. Please try again.';
+        } else {
+            errorMsg += error.message;
+        }
+        
+        alert(errorMsg);
+        statusEl.textContent = originalText;
+        throw error;
+    }
+}
 // ═══════════════════════════════════════════════════════════════
 // DATA PARSING
 // ═══════════════════════════════════════════════════════════════
