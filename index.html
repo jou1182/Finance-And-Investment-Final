@@ -1272,16 +1272,11 @@ function readExcelFile(file) {
 // PDF PROCESSING VIA N8N
 // ═══════════════════════════════════════════════════════════════
 async function processPDFFile(file) {
-    const statusEl = document.getElementById('processingText');
-    const originalText = statusEl.textContent;
-    
-    statusEl.textContent = currentLanguage === 'ar' 
-        ? 'جاري استخراج البيانات من PDF... قد يستغرق 30-60 ثانية'
-        : 'Extracting data from PDF... This may take 30-60 seconds';
-    
     try {
+        updateStatus('Extracting data from PDF... This may take 30-60 seconds', 'processing');
+        
         const formData = new FormData();
-        formData.append('data', file);
+        formData.append('file', file);
         
         const response = await fetch('https://tg.joutricks.cfd/webhook/extract-financial-data', {
             method: 'POST',
@@ -1294,58 +1289,43 @@ async function processPDFFile(file) {
         
         const contentType = response.headers.get('content-type');
         
-        // If Excel file returned
+        // Check if response is Excel file
         if (contentType && contentType.includes('application/vnd.openxmlformats')) {
-            statusEl.textContent = currentLanguage === 'ar'
-                ? 'تم الاستخراج! جاري تحليل البيانات...'
-                : 'Extracted! Analyzing data...';
+            // Download Excel file
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `financial_analysis_${Date.now()}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
             
-            const excelBlob = await response.blob();
-            const excelFile = new File([excelBlob], 'extracted_data.xlsx');
-            const excelData = await readExcelFile(excelFile);
-            const parsedData = parseFinancialData(excelData);
-            
-            statusEl.textContent = originalText;
-            return parsedData;
-        }
-        // If JSON returned
-        else {
-            const result = await response.json();
-            
-            if (result.error) {
-                throw new Error(result.error);
+            updateStatus(
+                currentLanguage === 'ar' 
+                ? 'تم تحميل الملف بنجاح!' 
+                : 'File downloaded successfully!',
+                'success'
+            );
+        } else {
+            // Try JSON response (fallback)
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error);
             }
-            
-            if (result.company || result.income) {
-                statusEl.textContent = originalText;
-                return result;
-            }
-            
-            throw new Error('Unexpected response format');
+            // Process JSON data
+            displayResults(data);
         }
         
     } catch (error) {
-        console.error('PDF processing error:', error);
-        
-        let errorMsg = currentLanguage === 'ar'
-            ? 'فشل استخراج البيانات من PDF. '
-            : 'Failed to extract data from PDF. ';
-        
-        if (error.message.includes('Failed to fetch')) {
-            errorMsg += currentLanguage === 'ar'
-                ? 'تحقق من اتصالك بالإنترنت.'
-                : 'Please check your internet connection.';
-        } else if (error.message.includes('500')) {
-            errorMsg += currentLanguage === 'ar'
-                ? 'خطأ في الخادم. حاول مرة أخرى.'
-                : 'Server error. Please try again.';
-        } else {
-            errorMsg += error.message;
-        }
-        
-        alert(errorMsg);
-        statusEl.textContent = originalText;
-        throw error;
+        console.error('PDF Processing Error:', error);
+        updateStatus(
+            currentLanguage === 'ar'
+            ? `فشل استخراج البيانات: ${error.message}`
+            : `Failed to extract data: ${error.message}`,
+            'error'
+        );
     }
 }
 
