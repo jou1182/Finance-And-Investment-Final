@@ -1273,7 +1273,14 @@ function readExcelFile(file) {
 // ═══════════════════════════════════════════════════════════════
 async function processPDFFile(file) {
     try {
-        updateStatus('Extracting data from PDF... This may take 30-60 seconds', 'processing');
+        // Show loading message
+        const statusEl = document.getElementById('status-message');
+        if (statusEl) {
+            statusEl.textContent = currentLanguage === 'ar' 
+                ? 'جاري استخراج البيانات... قد يستغرق 30-60 ثانية'
+                : 'Extracting data from PDF... This may take 30-60 seconds';
+            statusEl.className = 'status-message processing';
+        }
         
         const formData = new FormData();
         formData.append('file', file);
@@ -1302,33 +1309,44 @@ async function processPDFFile(file) {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
             
-            updateStatus(
-                currentLanguage === 'ar' 
-                ? 'تم تحميل الملف بنجاح!' 
-                : 'File downloaded successfully!',
-                'success'
-            );
+            // Show success message
+            if (statusEl) {
+                statusEl.textContent = currentLanguage === 'ar' 
+                    ? 'تم تحميل الملف بنجاح!'
+                    : 'File downloaded successfully!';
+                statusEl.className = 'status-message success';
+            }
+            
+            alert(currentLanguage === 'ar' 
+                ? 'تم تحميل ملف Excel بنجاح!'
+                : 'Excel file downloaded successfully!');
+                
         } else {
             // Try JSON response (fallback)
             const data = await response.json();
             if (data.error) {
                 throw new Error(data.error);
             }
-            // Process JSON data
-            displayResults(data);
+            // Process JSON data if needed
+            console.log('JSON data:', data);
         }
         
     } catch (error) {
         console.error('PDF Processing Error:', error);
-        updateStatus(
-            currentLanguage === 'ar'
-            ? `فشل استخراج البيانات: ${error.message}`
-            : `Failed to extract data: ${error.message}`,
-            'error'
-        );
+        
+        const statusEl = document.getElementById('status-message');
+        if (statusEl) {
+            statusEl.textContent = currentLanguage === 'ar'
+                ? `فشل استخراج البيانات: ${error.message}`
+                : `Failed to extract data: ${error.message}`;
+            statusEl.className = 'status-message error';
+        }
+        
+        alert(currentLanguage === 'ar'
+            ? 'خطأ في معالجة الملف. الرجاء المحاولة مرة أخرى.'
+            : 'Error processing file. Please try again.');
     }
 }
-
 // ═══════════════════════════════════════════════════════════════
 // DATA PARSING
 // ═══════════════════════════════════════════════════════════════
